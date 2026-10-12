@@ -66,6 +66,6 @@ Boot the agent out first, then use `up`/`down` by hand if needed.
 - `curl -s localhost:8888/health` hangs or refuses: check `launchctl list | grep tensorfold` and the launchd log.
 - Out of memory or the Mac stalls: something else large is loaded beside it. Never run another model of this size,
   or a heavy CPU job, while it serves.
-- Replies to images look wrong: run the image gate. If it fails, roll `tensorfold_sha` back to `d4966831`, the commit
+- Replies to images look wrong: run the image gate. If it fails, roll `tensorfold_sha` back to `68306275`, the commit
   this note was written against (`b103ecc2` is the earlier single-stream vision build: set `parallel = 1` and
   `context = 262144` with it).
