@@ -1,1 +1,2 @@
-info: prompt cache: 20 tokens, resumed at 0, kept 0; 6 states, 23616 MiB and 0 MiB spare of 24576 MiB (hits 0, misses 245, evicted 2, refused 0, failed 0)
+warning: flash next: FLASHNEXT_LOAD_LIMIT_GB lets the sessions take this Mac to 222.7 GiB, past the default 179.2 GiB (70% of RAM): a load that wires most of the RAM can stall macOS until its watchdog kills the server
+tensorfold: the native Flash Next batching engine cannot open (OverMemoryLimit): the sessions do not fit under 70% of RAM past the loaded model; fewer streams, a smaller --context, or FLASHNEXT_LOAD_LIMIT_GB past the share
