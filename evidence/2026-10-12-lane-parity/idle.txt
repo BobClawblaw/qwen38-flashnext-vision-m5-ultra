@@ -1,0 +1,2 @@
+after 10 s idle: first token 2.20 s, 2.40 s, 2.44 s
+after 30 s idle: first token 1.98 s, 1.99 s, 1.81 s

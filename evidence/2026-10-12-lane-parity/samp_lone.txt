@@ -1,0 +1,22 @@
+ok   greedy equals the four-stream build Write a short poem about the s
+ok   greedy equals the four-stream build Explain what a hash table is i
+ok   greedy equals the four-stream build List five fruits and one fact 
+ok   greedy equals the four-stream build Write a Python function that r
+ok   sampled equals parallel 4 Write a short poem about {'temperature': 0.7, 'seed': 11} 
+ok   sampled equals parallel 4 Write a short poem about {'temperature': 1.0, 'seed': 4, 'top_p': 1.0, 'top_k': 0} 
+ok   sampled equals parallel 4 Write a short poem about {'temperature': 0.6, 'seed': 2, 'min_p': 0.05} 
+ok   sampled equals parallel 4 Explain what a hash tabl {'temperature': 0.7, 'seed': 11} 
+ok   sampled equals parallel 4 Explain what a hash tabl {'temperature': 1.0, 'seed': 4, 'top_p': 1.0, 'top_k': 0} 
+ok   sampled equals parallel 4 Explain what a hash tabl {'temperature': 0.6, 'seed': 2, 'min_p': 0.05} 
+ok   sampled equals parallel 4 List five fruits and one {'temperature': 0.7, 'seed': 11} 
+ok   sampled equals parallel 4 List five fruits and one {'temperature': 1.0, 'seed': 4, 'top_p': 1.0, 'top_k': 0} 
+ok   sampled equals parallel 4 List five fruits and one {'temperature': 0.6, 'seed': 2, 'min_p': 0.05} 
+ok   sampled equals parallel 4 Write a Python function  {'temperature': 0.7, 'seed': 11} 
+ok   sampled equals parallel 4 Write a Python function  {'temperature': 1.0, 'seed': 4, 'top_p': 1.0, 'top_k': 0} 
+ok   sampled equals parallel 4 Write a Python function  {'temperature': 0.6, 'seed': 2, 'min_p': 0.05} 
+ok   drafted equals undrafted drafted 112 tok/s, plain 92
+ok   another seed differs 
+ok   drafted equals undrafted drafted 151 tok/s, plain 91
+ok   another seed differs 
+ok   speed greedy 134 tok/s, sampled 115 tok/s
+PASS

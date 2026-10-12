@@ -57,7 +57,8 @@ Decode is `bench/ruler.py` (256-token replies, median of 3). Sampling (temperatu
 92-96 undrafted, four streams about 163 tok/s in all against 180 greedy (the drawn tokens match the greedy drafts
 less often); every sampled reply equal drafted and undrafted, and alone and beside three others. With
 `parallel = 1` (engine `339b759a`) the same seed gives the same reply as with four streams (12 of 12); engine
-`160fed1c` runs its sampled rounds two deep as greedy ones are, 2-3% faster with the same replies. A 255,674-token prompt read at 3,635 tok/s (70 s) and
+`160fed1c` runs its sampled rounds two deep as greedy ones are, 2-3% faster with the same replies (`add3da3`, now pinned, predates that
+commit; it applies to `parallel = 1` only). A 255,674-token prompt read at 3,635 tok/s (70 s) and
 108,194 at 3,870 tok/s, a needle found in each. An agent loop over a 42k-token conversation: the first call 10-11 s,
 each later call 0.2 s to the first token, and 1.3 s when a turn adds a 4,000-token tool result (the cache resumes at
 the previous call's end). Image gate 7/7, video gate 7/7. About 219 GiB in use with the cache full.

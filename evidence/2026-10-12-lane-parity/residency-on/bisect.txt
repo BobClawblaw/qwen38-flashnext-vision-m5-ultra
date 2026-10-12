@@ -1,0 +1,9 @@
+B: lone off: code 212.0 tok/s, prose 131.1 tok/s
+C: no prompt cache: code 206.5 tok/s, prose 63.2 tok/s
+D: no keep-warm, no dashboard: code 76.6 tok/s, prose 62.1 tok/s
+E: context 65536: code 206.8 tok/s, prose 135.9 tok/s
+F: no vision: code 207.0 tok/s, prose 64.6 tok/s
+G: bare (16k, nothing else): code 207.2 tok/s, prose 136.9 tok/s
+residency off: code/prose alternating: 188 136 207 136 206 136 206 136
+lone unpriced: code/prose alternating: 73 137 207 60 75 62 207 65
+parallel 1 (single-reply host): code/prose alternating: 207 63 207 77 207 54 206 136

@@ -1,0 +1,5 @@
+turn 0: first token 5.15 s, total 5.41 s: 'Pilot, because it is a frequent noun in the text referring to the mari'
+turn 1: first token 0.17 s, total 0.35 s: 'Harbour, because it is a frequent noun in the text referring to the po'
+turn 2: first token 0.19 s, total 0.34 s: 'Channel, because it is a frequent noun in the text referring to the na'
+turn 3: first token 0.20 s, total 0.35 s: 'Cargo, because it is a frequent noun in the text referring to the good'
+turn 4: first token 0.21 s, total 0.40 s: 'Tides, because it is a frequent noun in the text referring to the wate'

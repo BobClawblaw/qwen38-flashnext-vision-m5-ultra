@@ -1,0 +1,19 @@
+ok   greedy unchanged Write a short poem about the s
+ok   greedy unchanged Explain what a hash table is i
+ok   greedy unchanged List five fruits and one fact 
+ok   greedy unchanged Write a Python function that r
+ok   sampled answers 'Beneath the moon’s pale, silver gaze,\nThe tide retreats in rhythmic haze.\nA whis'
+ok   same seed same reply 
+ok   another seed differs 
+ok   drafted equals undrafted drafted 111.35650780552636 tok/s, plain 90.77781500424675 tok/s
+ok   sampled differs from greedy 
+ok   sampled answers 'A hash table is a data structure that stores key-value pairs by using a hash fun'
+ok   same seed same reply 
+ok   another seed differs 
+ok   drafted equals undrafted drafted 150.3847751395188 tok/s, plain 91.88263524724418 tok/s
+ok   sampled differs from greedy 
+ok   four sampled streams together equal each alone 
+ok   greedy and sampled streams mixed equal alone 
+FAIL temperature 1 varies ['7']
+ok   speed greedy 133.82936984868377 tok/s, sampled 0.7 114.72062769448995 tok/s (300 tokens)
+FAIL: 1
