@@ -11,7 +11,7 @@ same_as = ""
 
 [engine]
 tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-lane-parity branch (not upstream yet)
-tensorfold_sha = "eb219d2a61872efbbae407cd3efe11749c84fe03"     # flashnext-lane-parity: sethforprivacy's add3da3 (lone driver, priced rounds) + a fast top_k 0 sampler
+tensorfold_sha = "431b76432410f1298e3ed65afbca529c21ed979e"     # flashnext-lane-parity: sethforprivacy's add3da3 + top_k 0 sampler + residency without the extra sessions
 tensorfold_src = "~/github/TensorFold"   # a checkout holding the sha; `build` adds a worktree at it under tf_cache
 zig = "~/.local/zig/zig"                 # Zig 0.17.0 (.zig-version in the checkout)
 zig_cpu = "apple_m1"
@@ -52,7 +52,7 @@ compact_at = ""                  # "" off | "auto" | a fraction, see TensorFold'
 dashboard = true                 # /dashboard and /stats
 api_key = ""
 extra_args = ""
-extra_env = "FLASHNEXT_NO_RESIDENCY=1"   # add3da3's residency set at 262k (196 GiB) slows the GPU-side rounds 3x here
+extra_env = "FLASHNEXT_RESIDENCY_SESSIONS=0"   # pin the weights and engine (173 GiB), not the extra sessions: the full 196 GiB set slowed decode 3x, none let idle macOS page the weights out
 memory_margin_gib = 8            # `up` refuses when free memory is under the engine's floor plus this
 
 [profiles.chat]

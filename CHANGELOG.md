@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-12 (weights pinned again)
+
+- Engine `431b7643` with `FLASHNEXT_RESIDENCY_SESSIONS=0` (`extra_env`, replacing `FLASHNEXT_NO_RESIDENCY=1`): the
+  residency set holds the weights, the engine's buffers and the tower (172.7 GiB), not the three extra 262k sessions.
+  Without any set, idle macOS paged the mapped weights out (the server's resident memory fell to 28 GB): Hermes's
+  first 30k-token prompt after 30 min idle ran 46 s into the GPU watchdog (`GpuFailed`) twice, and the Mac stuttered
+  while the weights paged back. Now: decode 206-207 / 136-137 tok/s on every request (the full 196 GiB set gave
+  30-207), the first token after 10-30 s idle 0.15 s (was ~2 s), a fresh 25k-token prompt after a minute idle 5.9 s.
+  `local.toml` here also sets `prompt_cache_gib = 16`.
+
 ## 2026-10-12 (top_k 0)
 
 - Engine `eb219d2a` (`add3da3` + one commit, also on #719 and cwschroeder/TensorFold#7): an unlimited or wide top-k
