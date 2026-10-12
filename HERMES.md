@@ -18,7 +18,9 @@ For the agent that manages this Mac (Hermes) and for anyone else. Written 2026-1
 - Endpoint: `http://192.168.5.178:8888/v1` (LAN) or `http://127.0.0.1:8888/v1`. OpenAI-compatible chat, completions
   and Responses, plus Anthropic Messages. No API key: the LAN is trusted. Any model name is accepted; `/v1/models`
   lists `Qwen3.8-Flash-Next-MLX-6bit`.
-- Greedy only: leave `temperature` out or send 0. A request with another temperature gets a 400.
+- Greedy only: leave `temperature` out or send 0. A request with another temperature gets a 400 saying it is not
+  supported; Hermes retries without it. Hermes's own `auxiliary.vision.temperature` is set to 0 in
+  `~/.hermes/config.yaml` so its image tool never sends one.
 - Images go in `image_url` parts as data URLs (base64 PNG or JPEG), up to 4 a request and 4,096 image tokens in all.
 - Videos go in `video_url` parts as data URLs (MP4, MOV, WebM or MKV), up to 2 a request, 16 MiB each, sharing 16,384
   visual tokens. Frames are sampled at 2 a second (at most 256), so a 30 s 720p clip is about 8,000 tokens and 5 s to
@@ -72,6 +74,6 @@ Boot the agent out first, then use `up`/`down` by hand if needed.
   or a heavy CPU job, while it serves.
 - Video requests answer "libtfvideo" errors: the library is missing beside the binary; run `python3 -m mac build`
   and kickstart.
-- Replies to images or videos look wrong: run both gates. If they fail, roll `tensorfold_sha` back to `fdbd0228`, the
-  commit this note was last checked against (`4cef40eb` is the same without video) (`b103ecc2` is the earlier single-stream vision build: set `parallel = 1` and
+- Replies to images or videos look wrong: run both gates. If they fail, roll `tensorfold_sha` back to `ddc17bb6`, the
+  commit this note was last checked against (`fdbd0228` the same with the old refusal wording) (`4cef40eb` is the same without video) (`b103ecc2` is the earlier single-stream vision build: set `parallel = 1` and
   `context = 262144` with it).

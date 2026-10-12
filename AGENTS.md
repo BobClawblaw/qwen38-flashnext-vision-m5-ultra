@@ -13,7 +13,7 @@ harness dependencies, stdlib Python only.
   since 2026-10-09. Do not pin another precision; a mixed layout is upstream engine work.
 - **Greedy only.** The engine has no sampler for Flash Next and refuses a temperature. `temperature = "0"` keeps the
   server's own default greedy so requests without one are served; never clear it.
-- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-video `fdbd0228`) and built into a worktree under `tf_cache`; never build
+- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-video `ddc17bb6`) and built into a worktree under `tf_cache`; never build
   in the user's checkout. To try a branch, build it elsewhere and point `binary` at it; re-pin only after the suite and
   the ruler rerun.
 - **The Spark recipe's suite and ruler are called, not copied.** `python3 -m mac suite` and `ruler` run them from a

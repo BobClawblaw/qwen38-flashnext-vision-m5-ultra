@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-12 (latest)
+
+- Engine `ddc17bb6`: a request with a temperature above 0 is refused as "temperature above 0 is not supported: ...",
+  so OpenAI clients that retry without an unsupported parameter (Hermes's image tool among them) drop it and succeed.
+  The old wording matched no client's retry, and Hermes's `vision_analyze` (temperature 0.1) failed on every image.
+
 ## 2026-10-12 (later)
 
 - Video input (engine `fdbd0228`, TensorFold branch `flashnext-video`: upstream #618's video path merged onto
