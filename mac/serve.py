@@ -65,19 +65,8 @@ def gpu_readings() -> tuple[int | None, int | None]:
     return out[0], out[1]
 
 
-def collector_line() -> str:
-    """Whether the GPU driver unwires idle memory (iogpu.disable_wired_collector 0): the engine then goes cold."""
-    r = subprocess.run(["sysctl", "-n", "iogpu.disable_wired_collector"], capture_output=True, text=True)
-    v = r.stdout.strip()
-    if v == "1":
-        return "GPU memory stays wired between requests (iogpu.disable_wired_collector=1)"
-    return ("GPU wired collector on: the engine goes cold seconds after each request (~2 s first tokens); "
-            "sudo sysctl iogpu.disable_wired_collector=1, or install launchd/local.iogpu-keep-wired.plist (README)")
-
-
 def memory_check(s: Settings, info_text: str) -> None:
     log(config.gpu_check(s, *gpu_readings()))
-    log(collector_line())
     m = re.search(r"memory floor:\s+([0-9.]+) GiB", info_text)
     floor = float(m.group(1)) if m else 0.0
     have = free_gib()

@@ -144,38 +144,24 @@ same request ran 30 to 207 tok/s with identical rounds, a cold prompt after an i
 GPU counts: an idle ComfyUI holds 8 GB. Four 262k streams hold about 184 GiB before any prompt cache, so they cross it
 alone. The defaults now serve one stream at 262,144 tokens with a 6 GiB cache, about 167 GiB on the GPU.
 
-**No residency set** (`FLASHNEXT_NO_RESIDENCY=1`, the default `extra_env`). The engine's residency set keeps its
-memory wired between requests, but rounds that touch both held and unheld buffers run slower, with identical rounds
-and drafts ([`evidence/2026-10-12-lane-parity/`](evidence/2026-10-12-lane-parity/), upstream #732):
+**Residency: every buffer, kept whole** (`FLASHNEXT_RESIDENCY=all`, the default `extra_env`). A second or two after a
+request macOS unwires an idle process's GPU memory and may compress or drop it; the next request then waits while it
+comes back (MTPLX's scheduler notes the same, ~9 ms a GiB). A residency set and the idle keepalive keep it wired, but
+a set that misses some buffers made rounds that touched both kinds slower, and committing the set mid-request
+stalled one. The engine (fork `7808bee8`) now holds every live Metal buffer: those made or freed during a request
+join or leave the set staged, and the keepalive commits them between requests. `keep_warm` (a day) bounds how long
+after the last request it keeps ticking.
 
-| Residency, one stream at 262k | Decode, code / prose (tok/s) | First token after idle | 25k-token prompt after 60 s idle |
-|---|---|---|---|
-| none (default) | 206-207 / 136-137 on every reply (30 of 30) | 2.1-2.4 s | 24 s |
-| engine and tower (172.7 GiB) | 207 / 137 on 70-90% of replies, the rest 50-100 | 0.1 s | 5.9 s |
-| weights only (148.8 GiB) | a steady 112-119 / 89-92 | 0.22 s | 6.4 s |
-| every buffer as it is made | steady, except new prompts: 5 tok/s while the cache's buffers joined | | |
+| One stream at 262k, macOS defaults | Decode, 30 mixed replies | First token after 10-30 s idle | After 5 min idle | 25k-token prompt after 60 s idle |
+|---|---|---|---|---|
+| every buffer, kept whole (default) | 0 of 30 slow, twice | 0.09-0.10 s | 0.10 s | 5.4 s |
+| no residency set | 0 of 30 slow | 2.1-2.4 s | | 24 s |
+| engine and tower, set at startup | 10-30% at 50-100 tok/s | 0.1 s | | 5.9 s |
+| weights only | a steady ~45% slower | 0.22 s | | 6.4 s |
+| every buffer, a commit per buffer | new prompts stalled at 5 tok/s | | | |
 
-**Keep it wired: `iogpu.disable_wired_collector=1`.** Without a set, the GPU driver's collector unwires the engine's
-memory a second or two after each request, and macOS then compresses or drops it: the first turn after a pause took
-about 2 s longer, a long uncached prompt read several times slower, and under memory pressure such a read ran into the
-GPU watchdog (`GpuFailed`) while the whole Mac stuttered. Turning the collector off keeps that memory wired with no
-residency set and no slow rounds. It raises no limit; the server stays inside the GPU budget above.
-
-| No residency set, one stream at 262k | Decode, 30 mixed replies | First token after 10-30 s idle | 25k-token prompt after 60 s idle |
-|---|---|---|---|
-| collector on (macOS default) | steady | 2.1-2.4 s | 24 s |
-| `iogpu.disable_wired_collector=1` | steady, 0 of 30 slow | 0.10-0.12 s (0.11 s after 5 min) | 5.7 s |
-
-`sudo sysctl iogpu.disable_wired_collector=1` lasts until the next boot. To set it at every boot:
-
-```bash
-sudo cp launchd/local.iogpu-keep-wired.plist /Library/LaunchDaemons/
-sudo chown root:wheel /Library/LaunchDaemons/local.iogpu-keep-wired.plist
-sudo launchctl bootstrap system /Library/LaunchDaemons/local.iogpu-keep-wired.plist
-```
-
-`mac validate` and `mac up` say which way it is. Apple does not document the setting; this is what it did here.
-`extra_env = "FLASHNEXT_RESIDENCY_SESSIONS=0"` restores the residency set instead.
+`sudo sysctl iogpu.disable_wired_collector=1` (macOS keeps all GPU memory wired, for every app) gave the same speeds
+with no set; it is not needed now, and it costs other apps the memory macOS could otherwise reclaim.
 
 `mac validate` and `mac up` estimate the server's GPU memory (153.5 GiB for the engine, 7.5 GiB a 262k stream, the
 prompt cache) and refuse settings that, with `gpu_headroom_gib` (12) kept for other apps, pass 74% of RAM, or

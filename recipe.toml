@@ -11,7 +11,7 @@ same_as = ""
 
 [engine]
 tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-lane-parity branch (not upstream yet)
-tensorfold_sha = "c507c94fb1bf5fa03becfe5332acab73ca98e53b"     # flashnext-lane-parity: sethforprivacy's add3da3 + top_k 0 sampler + residency without the extra sessions
+tensorfold_sha = "7808bee8f9bd7650a4ec33dd0268418829643bfc"     # flashnext-lane-parity: add3da3 + top_k 0 sampler + a residency set kept whole
 tensorfold_src = "~/github/TensorFold"   # a checkout holding the sha; `build` adds a worktree at it under tf_cache
 zig = "~/.local/zig/zig"                 # Zig 0.17.0 (.zig-version in the checkout)
 zig_cpu = "apple_m1"
@@ -37,7 +37,7 @@ max_tokens = 32768
 temperature = "0"                # the server default: greedy unless a request sends a temperature
 prompt_cache_gib = 6             # kept prompt states, so an agent's next call reads only its new turns (~1 GiB a 32k one); -1 the engine's default
 prompt_cache_over_cap = true     # --prompt-cache-over-cap with a size above 0: the engine's 70% share leaves ~4.8 GiB at one stream
-keep_warm = 900                  # seconds the GPU stays active after a request
+keep_warm = 86400                # seconds after a request the idle keepalive (a 16-byte copy every 400 ms) holds the set
 learn = false                    # shared prefixes (a system prompt and its tools) kept on disk across restarts (--learn, v1.0.7)
 learn_dir = ""                   # where learned states live; empty: the engine's default
 learn_gib = 0                    # their budget; 0: the engine's default
@@ -53,7 +53,7 @@ compact_at = ""                  # "" off | "auto" | a fraction, see TensorFold'
 dashboard = true                 # /dashboard and /stats
 api_key = ""
 extra_args = ""
-extra_env = "FLASHNEXT_NO_RESIDENCY=1"   # no residency set: decode steady at full speed; any set made some rounds 2-40x slower (README)
+extra_env = "FLASHNEXT_RESIDENCY=all"   # every buffer in the residency set, changes committed between requests (README)
 memory_margin_gib = 8            # `up` refuses when free memory is under the engine's floor plus this
 gpu_headroom_gib = 12            # GPU memory kept for other apps (an idle ComfyUI holds 8): `up` refuses past the GPU budget
 

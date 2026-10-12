@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-12 (a residency set kept whole)
+
+- Engine `7808bee8` with `FLASHNEXT_RESIDENCY=all`: every live Metal buffer in the residency set, buffers made or
+  freed during a request committed by the idle keepalive between requests. macOS defaults (the wired collector on):
+  60 of 60 mixed replies steady, the first token 0.09-0.10 s after 10 s to 5 min idle, a 25k-token prompt after a
+  minute idle 5.4 s. `keep_warm` is a day. The collector setting and its LaunchDaemon are no longer needed.
+
 ## 2026-10-12 (keep it wired)
 
 - `iogpu.disable_wired_collector=1` keeps the engine's memory wired with no residency set: 30 of 30 mixed replies

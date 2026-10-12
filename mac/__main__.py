@@ -42,7 +42,6 @@ def main(argv: list[str] | None = None) -> int:
         if a.cmd == "validate":
             print(s.summary())
             print(config.gpu_check(s, *serve.gpu_readings()))
-            print(serve.collector_line())
         elif a.cmd == "up":
             serve.up(s, download=not a.no_download, foreground=a.foreground)
         elif a.cmd == "down":
