@@ -1,0 +1,24 @@
+{
+ "url": "http://127.0.0.1:8888",
+ "model": "/Users/xian/.cache/huggingface/hub/models--TensorFold--Qwen3.8-Flash-Next-MLX-6bit-MTP/snapshots/45032a193a5d4126ba8534822cbaf8fb30b3e368",
+ "rows": [
+  {
+   "asked": 100000,
+   "prompt_tokens": 108194,
+   "ttft_s": 27.96,
+   "prefill_tok_s": 3870,
+   "found": true,
+   "cached": 0,
+   "reply": "The access code for run 1000 is 915117."
+  },
+  {
+   "asked": 250000,
+   "prompt_tokens": 0,
+   "ttft_s": 0,
+   "prefill_tok_s": null,
+   "found": false,
+   "cached": 0,
+   "reply": ""
+  }
+ ]
+}

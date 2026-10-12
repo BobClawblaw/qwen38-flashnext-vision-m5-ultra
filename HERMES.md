@@ -4,17 +4,19 @@ For the agent that manages this Mac (Hermes) and for anyone else. Written 2026-1
 
 ## What runs on :8888
 
-- Qwen3.8-Flash-Next, 6-bit, with image and video input, four streams at once and a 1,048,576-token window, served by
-  TensorFold's native Metal engine from this recipe (`~/github/qwen38-flashnext-vision-m5-ultra`).
+- Qwen3.8-Flash-Next, 6-bit, with image and video input, four streams at once and a 262,144-token window (no YaRN)
+  with a 24 GiB prompt cache, served by TensorFold's native Metal engine from this recipe
+  (`~/github/qwen38-flashnext-vision-m5-ultra`). Since 2026-10-12 this Mac's `local.toml` sets `context = 262144`,
+  `prompt_cache_gib = 24` and `extra_args = "--prompt-cache-over-cap"`; the recipe's own default is the 1M window.
+- The prompt cache is what makes an agent loop fast: each call resumes where the last one ended and reads only the
+  new turns (a 42k-token conversation: first call ~11 s, later calls ~0.2 s plus ~0.3 s per 1,000 new tokens).
+  Without it every call rereads the whole conversation.
 - It supersedes the MTPLX app on :8888. MTPLX stays installed but must not be started: both want the port, and the
-  two models cannot share the 256 GB at once. This server holds about 222 GiB once loaded (its load limit is 240 GB,
+  two models cannot share the 256 GB at once. This server holds about 219 GiB with its cache full (load limit 240 GB,
   `load_limit_gb`), so nothing else large fits beside it: no ComfyUI, no second model, no heavy CPU jobs.
-- Four requests run at once; a fifth waits. Only one stream (slot 0) holds the full 1M window; the other three hold
-  262,144 tokens. A request longer than 262,144 tokens waits for slot 0 if it is busy. Short requests go to the small
-  slots first, so slot 0 stays free for long ones.
-- Past 262,144 tokens the engine rotates with static YaRN x4, and it does so for every prompt: short prompts score a
-  little lower than on the text-only recipe (tool calls 56/60 against 59/60). For the best short-prompt quality,
-  set `context = 262144` in `local.toml` and kickstart (four streams, no YaRN).
+- Four requests run at once; a fifth waits. Each holds up to 262,144 tokens; a longer prompt gets a 400.
+- To get the 1M window back (static YaRN x4 for every prompt, slightly lower short-prompt scores, and no room left
+  for the prompt cache, so agent loops reread everything): delete those three lines from `local.toml` and kickstart.
 - Endpoint: `http://192.168.5.178:8888/v1` (LAN) or `http://127.0.0.1:8888/v1`. OpenAI-compatible chat, completions
   and Responses, plus Anthropic Messages. No API key: the LAN is trusted. Any model name is accepted; `/v1/models`
   lists `Qwen3.8-Flash-Next-MLX-6bit`.
@@ -64,7 +66,7 @@ Boot the agent out first, then use `up`/`down` by hand if needed.
   `~/.cache/tensorfold-qwen38-vision/engine/<sha>`. To upgrade: set the new sha, `python3 -m mac build`, kickstart,
   then run the image gate and `python3 -m mac ruler -- --runs 3` before trusting it.
 - Text only (no tower, 1.7 GiB less): set `vision = false` in `local.toml` and kickstart.
-- Smaller footprints, each a `local.toml` line and a kickstart: `context = 262144` (four streams, no YaRN, ~205 GiB),
+- Smaller footprints, each a `local.toml` change and a kickstart: drop the prompt cache lines (~195 GiB),
   `parallel = 1` (one reply at a time, the single-reply driver, ~200 GiB at 1M).
 
 ## If something is wrong

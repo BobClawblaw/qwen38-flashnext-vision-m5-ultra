@@ -88,6 +88,11 @@ Video ([`video_check.txt`](evidence/2026-10-11-video/video_check.txt), `tools/vi
 square going left along the bottom, a 30-second 720p clip's two scenes in order (8,206 prompt tokens, first token
 5.0 s), a video beside an image, and a video and a text request at once each equal to their replies alone: 7/7.
 
+For an agent loop on this Mac, `context = 262144` with a 24 GiB prompt cache
+([`evidence/2026-10-12-262k-cache/`](evidence/2026-10-12-262k-cache/), see the changelog): four streams, no YaRN,
+decode 129-177 tok/s one user and 210-322 at four, a 255,674-token needle at 3,635 tok/s, each agent call reading
+only its new turns. The 1M defaults leave no memory for the prompt cache.
+
 Static YaRN costs short prompts a little, as Qwen's card says it may. `context = 262144` in `local.toml` serves four
 streams on the plain rotary instead (about 205 GiB).
 

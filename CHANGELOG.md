@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-12 (this Mac's settings)
+
+- This Mac serves `context = 262144` (no YaRN) with four streams and a 24 GiB prompt cache past the 70% share
+  (`prompt_cache_gib = 24`, `extra_args = "--prompt-cache-over-cap"`, ~219 GiB in all). At 1M the slots left no room
+  for the cache, so every agent call reread its whole conversation (Hermes: ~20 s a call at 59k tokens). Now a call
+  resumes where the last ended: 42k-token turns at 0.2 s to the first token, 4k-token tool results at 1.3 s. Ruler,
+  gates and a 255,674-token needle in [`evidence/2026-10-12-262k-cache/`](evidence/2026-10-12-262k-cache/).
+
 ## 2026-10-12 (latest)
 
 - Engine `ddc17bb6`: a request with a temperature above 0 is refused as "temperature above 0 is not supported: ...",

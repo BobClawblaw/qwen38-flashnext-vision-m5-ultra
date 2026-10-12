@@ -1,0 +1,1 @@
+  255674 tokens  ttft   70.33 s    3635 tok/s  found=True cached=0  'The access code for run 1000 is 915117.'
