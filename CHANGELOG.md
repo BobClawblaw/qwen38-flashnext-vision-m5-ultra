@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-12 (one stream, a GPU budget)
+
+- Defaults: `parallel = 1` and `prompt_cache_gib = 6` (were 4 and 24). Four 262k streams hold about 184 GiB on the GPU
+  before any cache; with the cache and an idle ComfyUI (8 GB) the GPU passed ~190 GiB, where macOS (with
+  `iogpu.wired_limit_mb` unset) reclaimed the server's memory: decode 30-207 tok/s on one request, `GpuFailed` on
+  cold prompts, a stuttering Mac. One stream: 173 GB on the GPU, 0.1 s first token after idle, most replies 201-208 /
+  137 tok/s; some still run at 50-90 with identical rounds (cause not found yet).
+- `mac validate` and `mac up` estimate the server's GPU memory and refuse settings past 74% of RAM (or
+  `iogpu.wired_limit_mb` when set) less the new `gpu_headroom_gib` (12) for other apps. README: GPU memory section.
+
 ## 2026-10-12 (top_k 0 endpoint)
 
 - Engine `c507c94f`: the wide top-k draw keeps a uniform that rounds to exactly 1.0 (+inf noise) as the reference

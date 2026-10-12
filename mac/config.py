@@ -16,6 +16,14 @@ ROOT = Path(__file__).resolve().parents[1]
 PROFILES = ("chat", "reference")
 TRAINED_CONTEXT = 262144             # the checkpoint's max_position_embeddings
 MAX_CONTEXT = 4 * TRAINED_CONTEXT     # past it the engine rotates with static YaRN x4
+# GPU memory, measured on the M5 Ultra (2026-10-12): the loaded engine without its session (weights, buffers, tower),
+# the tower alone, and one 262,144-token session's caches (each stream holds one, the engine's own included)
+ENGINE_GIB = 153.5
+TOWER_GIB = 1.73
+SESSION_GIB = 7.5
+# with iogpu.wired_limit_mb unset, decode there turned erratic (and cold prompts hit the GPU watchdog) once the GPU
+# held about 190 GiB of the 256: macOS reclaims wired GPU memory past it. The budget is this share of RAM.
+GPU_SHARE = 0.74
 # flags `serve_args` builds itself; EXTRA_ARGS may not set them (the parser keeps the last value); TensorFold's parser
 # takes unambiguous prefixes, so any prefix of these is refused too
 OWNED_FLAGS = ("--host", "--port", "--name", "--context", "--max-tokens", "--thinking", "--no-thinking", "--no-drafts",
@@ -77,6 +85,7 @@ class Settings:
     extra_args: str
     extra_env: str
     memory_margin_gib: float
+    gpu_headroom_gib: float
     # [external]
     spark_recipe_repo: str
     spark_recipe_sha: str
@@ -264,7 +273,7 @@ def load(local_file: Path | str | None = None, env: dict[str, str] | None = None
 
 def validate(s: Settings) -> None:
     for name, lo, hi in (("port", 1, 65535), ("max_tokens", 1, 1 << 24), ("prompt_cache_gib", -1, 1024),
-                         ("keep_warm", 0, 86400), ("learn_gib", 0, 1024), ("memory_margin_gib", 0, 256),
+                         ("keep_warm", 0, 86400), ("learn_gib", 0, 1024), ("memory_margin_gib", 0, 256), ("gpu_headroom_gib", 0, 256),
                          ("vision_image_tokens", 64, 16384), ("vision_max_images", 1, 16), ("parallel", 1, 8),
                          ("vision_video_tokens", 64, 262144),
                          ("load_limit_gb", 0, 256)):
@@ -314,3 +323,35 @@ def validate(s: Settings) -> None:
     for kv in s.extra_env_pairs:
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", kv):
             raise ConfigError(f"extra_env entry {kv!r} is not KEY=VALUE")
+
+
+def gpu_gib(s: Settings) -> float:
+    """The server's GPU memory once its prompt cache fills: the engine, a session a stream at the window, the cache."""
+    return (ENGINE_GIB - (0.0 if s.vision else TOWER_GIB) + s.parallel * SESSION_GIB * s.context / TRAINED_CONTEXT
+            + max(s.prompt_cache_gib, 0))
+
+
+def gpu_budget_gib(limit_mb: int | None, ram_bytes: int | None) -> tuple[float, str] | None:
+    """What the server may hold on the GPU: iogpu.wired_limit_mb when set, else GPU_SHARE of RAM; None unread."""
+    if limit_mb:
+        return limit_mb / 1024, f"iogpu.wired_limit_mb={limit_mb}"
+    if ram_bytes:
+        return ram_bytes * GPU_SHARE / 2**30, f"{GPU_SHARE:.0%} of {ram_bytes / 2**30:.0f} GiB of RAM, iogpu.wired_limit_mb unset"
+    return None
+
+
+def gpu_check(s: Settings, limit_mb: int | None, ram_bytes: int | None) -> str:
+    """A line for the log, or ConfigError when the server and gpu_headroom_gib pass the GPU budget."""
+    b = gpu_budget_gib(limit_mb, ram_bytes)
+    need = gpu_gib(s)
+    if b is None:
+        return f"GPU: about {need:.0f} GiB (no budget reading)"
+    budget, source = b
+    if need + s.gpu_headroom_gib > budget:
+        raise ConfigError(
+            f"parallel={s.parallel} at context={s.context} with prompt_cache_gib={s.prompt_cache_gib} holds about {need:.0f} "
+            f"GiB on the GPU; with gpu_headroom_gib={s.gpu_headroom_gib:g} for other apps that passes {budget:.0f} GiB "
+            f"({source}), where macOS starts reclaiming the server's memory (erratic decode, GPU timeouts). Lower "
+            "parallel, context or prompt_cache_gib, or raise iogpu.wired_limit_mb (see the README's GPU memory section)")
+    return f"GPU: about {need:.0f} GiB + {s.gpu_headroom_gib:g} GiB headroom of {budget:.0f} GiB ({source})"
+

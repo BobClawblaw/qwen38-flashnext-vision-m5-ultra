@@ -13,7 +13,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from . import engine, weights
+from . import config, engine, weights
 from .config import Settings
 from .log import log
 
@@ -56,7 +56,17 @@ def free_gib() -> float:
     return pages * page / 2**30
 
 
+def gpu_readings() -> tuple[int | None, int | None]:
+    """iogpu.wired_limit_mb (0 unset) and hw.memsize, None where sysctl does not say."""
+    out = []
+    for key in ("iogpu.wired_limit_mb", "hw.memsize"):
+        r = subprocess.run(["sysctl", "-n", key], capture_output=True, text=True)
+        out.append(int(r.stdout.strip()) if r.returncode == 0 and r.stdout.strip().isdigit() else None)
+    return out[0], out[1]
+
+
 def memory_check(s: Settings, info_text: str) -> None:
+    log(config.gpu_check(s, *gpu_readings()))
     m = re.search(r"memory floor:\s+([0-9.]+) GiB", info_text)
     floor = float(m.group(1)) if m else 0.0
     have = free_gib()

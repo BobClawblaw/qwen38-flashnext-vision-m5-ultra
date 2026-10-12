@@ -4,18 +4,20 @@ For the agent that manages this Mac (Hermes) and for anyone else. Written 2026-1
 
 ## What runs on :8888
 
-- Qwen3.8-Flash-Next, 6-bit, with image and video input, four streams at once and a 262,144-token window (no YaRN)
-  with a 24 GiB prompt cache, served by TensorFold's native Metal engine from this recipe
+- Qwen3.8-Flash-Next, 6-bit, with image and video input, one reply at a time and a 262,144-token window (no YaRN)
+  with a 6 GiB prompt cache, served by TensorFold's native Metal engine from this recipe. A second request (a title,
+  a compression call) waits for the first to finish
   (`~/github/qwen38-flashnext-vision-m5-ultra`). These are the recipe's defaults since 2026-10-12; this Mac's
   `local.toml` only sets the host and port.
 - The prompt cache is what makes an agent loop fast: each call resumes where the last one ended and reads only the
   new turns (a 42k-token conversation: first call ~11 s, later calls ~0.2 s plus ~0.3 s per 1,000 new tokens).
   Without it every call rereads the whole conversation.
 - It supersedes the MTPLX app on :8888. MTPLX stays installed but must not be started: both want the port, and the
-  two models cannot share the 256 GB at once. This server holds about 219 GiB with its cache full (load limit 240 GB,
-  `load_limit_gb`), so nothing else large fits beside it: no ComfyUI, no second model, no heavy CPU jobs.
-- Four requests run at once; a fifth waits. Each holds up to 262,144 tokens; a longer prompt gets a 400.
-- A 1M window is possible (`context = 1048576` and `prompt_cache_gib = 0` in `local.toml`, then kickstart), but it is
+  two models cannot share the 256 GB at once. This server holds about 167 GiB of GPU memory with its cache full, kept
+  under the ~190 GiB where macOS starts reclaiming it (erratic speed, `GpuFailed`, a stuttering Mac): an idle ComfyUI
+  (8 GB) fits beside it, a second model does not. Past that budget `mac up` refuses (`gpu_headroom_gib`).
+- One request runs at a time; the next waits. Each holds up to 262,144 tokens; a longer prompt gets a 400.
+- A 1M window needs a raised `iogpu.wired_limit_mb` (its 30 GiB session passes the GPU budget) and `prompt_cache_gib = 0`; it is
   worse for everyday use: no prompt cache, so agent loops reread everything (~20 s a call at 59k tokens); static YaRN
   x4 on every prompt (slightly lower scores); one long stream at a time. The README's "The 1M window and its problems"
   has the details. `python3 -m mac validate` refuses 1M with the cache on: together they would fill the RAM.
@@ -55,9 +57,9 @@ python3 -I tools/video_check.py --url http://127.0.0.1:8888    # the video gate:
 Do not run `python3 -m mac up` or `down` while the launchd agent is loaded: launchd owns the process and restarts it.
 Boot the agent out first, then use `up`/`down` by hand if needed.
 
-- Startup log: `~/.cache/tensorfold-qwen38-vision/launchd.log`. A start needs about 230 GiB free: close the other big
-  process (ComfyUI, MTPLX, another model) and kickstart. `OverMemoryLimit` in the log means the four slots did not fit
-  under `load_limit_gb`: free memory, or lower `parallel` or `context` in `local.toml`.
+- Startup log: `~/.cache/tensorfold-qwen38-vision/launchd.log`. A start needs about 175 GiB free: close the other big
+  process (MTPLX, another model) and kickstart. `settings: ... holds about N GiB on the GPU` means `local.toml` asks for
+  more than the GPU budget: lower `parallel`, `context` or `prompt_cache_gib`.
 - Healthy start: `image tower loaded (1.73 GiB ...)` then `serving Qwen3.8-Flash-Next-MLX-6bit at http://0.0.0.0:8888`.
 
 ## Changing it
@@ -68,8 +70,8 @@ Boot the agent out first, then use `up`/`down` by hand if needed.
   `~/.cache/tensorfold-qwen38-vision/engine/<sha>`. To upgrade: set the new sha, `python3 -m mac build`, kickstart,
   then run the image gate and `python3 -m mac ruler -- --runs 3` before trusting it.
 - Text only (no tower, 1.7 GiB less): set `vision = false` in `local.toml` and kickstart.
-- Smaller footprints, each a `local.toml` line and a kickstart: `prompt_cache_gib = 0` (~195 GiB, but agent loops
-  reread everything), and `parallel = 1` with it (one reply at a time, ~176 GiB).
+- Smaller footprint: `prompt_cache_gib = 0` in `local.toml` and a kickstart (~161 GiB, but agent loops reread
+  everything). More at once: `parallel = 2` with `context = 131072` fits the budget; four full 262k streams do not.
 
 ## If something is wrong
 

@@ -41,6 +41,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if a.cmd == "validate":
             print(s.summary())
+            print(config.gpu_check(s, *serve.gpu_readings()))
         elif a.cmd == "up":
             serve.up(s, download=not a.no_download, foreground=a.foreground)
         elif a.cmd == "down":
@@ -64,6 +65,9 @@ def main(argv: list[str] | None = None) -> int:
             return external.suite(s, [w for w in a.rest if w != "--"])
         elif a.cmd == "ruler":
             return external.ruler(s, [w for w in a.rest if w != "--"])
+    except config.ConfigError as exc:
+        print(f"settings: {exc}", file=sys.stderr)
+        return 2
     except (RuntimeError, subprocess_error()) as exc:
         fail(str(exc))
         return 1

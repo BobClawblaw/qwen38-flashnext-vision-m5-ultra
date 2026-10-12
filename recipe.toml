@@ -35,8 +35,8 @@ drafts = true
 thinking = false
 max_tokens = 32768
 temperature = "0"                # the server default: greedy unless a request sends a temperature
-prompt_cache_gib = 24            # kept prompt states, so an agent's next call reads only its new turns; -1 the engine's default
-prompt_cache_over_cap = true     # --prompt-cache-over-cap with a size above 0: it passes the 70% share as the slots do (~219 GiB)
+prompt_cache_gib = 6             # kept prompt states, so an agent's next call reads only its new turns (~1 GiB a 32k one); -1 the engine's default
+prompt_cache_over_cap = true     # --prompt-cache-over-cap with a size above 0: the engine's 70% share leaves ~4.8 GiB at one stream
 keep_warm = 900                  # seconds the GPU stays active after a request
 learn = false                    # shared prefixes (a system prompt and its tools) kept on disk across restarts (--learn, v1.0.7)
 learn_dir = ""                   # where learned states live; empty: the engine's default
@@ -46,14 +46,16 @@ vision_image_tokens = 4096       # image tokens a request may hold in all (a 200
 vision_max_images = 4            # images a request may hold
 video = true                     # video input (video_url parts): builds libtfvideo over a static FFmpeg 9.0.2 once
 vision_video_tokens = 16384      # visual tokens a request's videos share (a 30 s 720p clip takes about 8,000)
-parallel = 4                     # streams at once (upstream PR #606's shared lane path); 1: the single-reply driver
-load_limit_gb = 240              # FLASHNEXT_LOAD_LIMIT_GB: four streams pass the engine's 70% share (~195 GiB before the cache)
+parallel = 1                     # streams at once: 1 the single-reply driver; above 1 upstream PR #606's shared lane path, which
+                                 # needs a smaller context to fit the GPU (see gpu_headroom_gib and the README)
+load_limit_gb = 240              # FLASHNEXT_LOAD_LIMIT_GB (parallel above 1): how far the sessions may pass the engine's 70% share
 compact_at = ""                  # "" off | "auto" | a fraction, see TensorFold's README
 dashboard = true                 # /dashboard and /stats
 api_key = ""
 extra_args = ""
 extra_env = "FLASHNEXT_RESIDENCY_SESSIONS=0"   # pin the weights and engine (173 GiB), not the extra sessions: the full 196 GiB set slowed decode 3x, none let idle macOS page the weights out
 memory_margin_gib = 8            # `up` refuses when free memory is under the engine's floor plus this
+gpu_headroom_gib = 12            # GPU memory kept for other apps (an idle ComfyUI holds 8): `up` refuses past the GPU budget
 
 [profiles.chat]
 drafts = true

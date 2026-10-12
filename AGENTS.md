@@ -38,10 +38,11 @@ harness dependencies, stdlib Python only.
   is the obvious speed-up.
 - **On this Mac** the launchd unit serves it on :8888 to the LAN, no API key, superseding MTPLX: see HERMES.md. Don't
   `mac up`/`down` while the unit is loaded.
-- **Four streams, 262k and the prompt cache:** `parallel = 4` uses upstream #606's shared lane path (not merged
-  upstream). The default window is the trained 262,144 with a 24 GiB prompt cache past the 70% share
-  (`prompt_cache_over_cap`); `load_limit_gb` lets the slots pass it too; ~219 GiB in all. `context` up to 1048576 works
-  (static YaRN x4 on every prompt, slot 0 alone long) but only with `prompt_cache_gib = 0` (validate refuses otherwise),
-  and then agent loops reread their whole history: see the README's 1M section. Never run anything large beside it.
+- **GPU memory decides the shape:** with `iogpu.wired_limit_mb` unset, macOS reclaims a server's GPU memory past about
+  190 GiB of the 256 (decode 30-207 tok/s on one request, `GpuFailed` on cold prompts, a stuttering Mac). The default
+  is one stream (`parallel = 1`) at the trained 262,144 with a 6 GiB prompt cache, ~167 GiB; `mac validate` and `up`
+  refuse settings past 74% of RAM less `gpu_headroom_gib` (config.gpu_check). `parallel` above 1 uses upstream #606's
+  shared lane path (not merged): two streams fit at 131k, four at 65k. Never raise the wired limit or run anything
+  large beside it without asking.
 - **Prompt passes step between rounds** (backend.zig prefillStep, fair share with decoding streams);
   `tools/stall_check.py 280000` checks it. FZ_BATCH_LOG=1 times each chunk.

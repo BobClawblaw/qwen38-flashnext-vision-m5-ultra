@@ -22,17 +22,17 @@ class Defaults(unittest.TestCase):
         self.assertEqual(s.profile, "chat")
         self.assertTrue(s.drafts)
         self.assertEqual(s.context, 262144)
-        self.assertEqual(s.parallel, 4)
+        self.assertEqual(s.parallel, 1)
         args = s.serve_args("/m")
         self.assertEqual(args[:2], ["serve", "/m"])
         self.assertIn("--no-thinking", args)
         self.assertNotIn("--no-drafts", args)
         self.assertEqual(args[args.index("--temperature") + 1], "0")   # the engine decodes Flash Next greedily only
-        self.assertEqual(args[args.index("--prompt-cache-gib") + 1], "24")
+        self.assertEqual(args[args.index("--prompt-cache-gib") + 1], "6")
         self.assertIn("--prompt-cache-over-cap", args)
         self.assertIn("--dashboard", args)
         self.assertIn("--no-update-check", args)
-        self.assertEqual(args[args.index("--parallel") + 1], "4")
+        self.assertNotIn("--parallel", args)   # one stream: the single-reply driver
         self.assertEqual(s.server_env()["FLASHNEXT_LOAD_LIMIT_GB"], "240")
         self.assertEqual(args[args.index("--vision-image-tokens") + 1], "4096")
         self.assertIn("--vision", args)
@@ -88,7 +88,7 @@ class Refusals(unittest.TestCase):
         self.refuse("passes itself", extra_args="--prompt-cache-over-cap")
 
     def test_1m_needs_the_cache_off(self):
-        self.refuse("leaves no memory", context="1048576")
+        self.refuse("leaves no memory", context="1048576", parallel="4")
         args = load(context="1048576", prompt_cache_gib="0").serve_args("/m")
         self.assertEqual(args[args.index("--context") + 1], "1048576")
 
@@ -104,7 +104,7 @@ class Refusals(unittest.TestCase):
         self.refuse("passes itself", extra_args="--port 1")
         self.refuse("passes itself", extra_args="--no-dra")          # a prefix
         self.refuse("passes itself", extra_args="--parallel 4")
-        self.refuse("parallel=1", learn="1")
+        self.refuse("parallel=1", learn="1", parallel="4")
         self.refuse("not a Flash Next-on-Metal flag", extra_args="--kv-dtype int8")
 
     def test_vision_off_and_bounds(self):
@@ -136,6 +136,30 @@ class Refusals(unittest.TestCase):
     def test_unknown_setting(self):
         with self.assertRaises(config.ConfigError):
             config.load(local_file=Path(__file__).with_name("bad.toml"), env={})
+
+
+class GpuBudget(unittest.TestCase):
+    RAM = 256 << 30
+
+    def test_defaults_fit_with_headroom(self):
+        s = load()
+        self.assertAlmostEqual(config.gpu_gib(s), 167.0, places=1)    # 153.5 engine + 7.5 session + 6 cache
+        self.assertIn("of 189 GiB", config.gpu_check(s, 0, self.RAM))
+
+    def test_four_full_streams_pass_the_budget_with_or_without_a_cache(self):
+        for cache in (24, 6, 0):
+            with self.assertRaises(config.ConfigError):
+                config.gpu_check(load(parallel=4, prompt_cache_gib=cache), 0, self.RAM)
+
+    def test_smaller_windows_and_headroom(self):
+        self.assertIn("GPU:", config.gpu_check(load(parallel=2, context=131072), 0, self.RAM))
+        with self.assertRaises(config.ConfigError):   # an app that holds 30 GiB: the default no longer fits
+            config.gpu_check(load(gpu_headroom_gib=30), 0, self.RAM)
+
+    def test_a_raised_wired_limit_is_the_budget(self):
+        s = load(parallel=4, prompt_cache_gib=24)
+        self.assertIn("iogpu.wired_limit_mb=240000", config.gpu_check(s, 240000, self.RAM))
+        self.assertIn("no budget reading", config.gpu_check(s, None, None))
 
 
 if __name__ == "__main__":
