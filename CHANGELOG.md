@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-12 (keep it wired)
+
+- `iogpu.disable_wired_collector=1` keeps the engine's memory wired with no residency set: 30 of 30 mixed replies
+  steady, the first token after 10-30 s idle 0.10-0.12 s (2.1-2.4 s with the collector on), a 25k-token prompt after
+  60 s idle 5.7 s (24 s). `launchd/local.iogpu-keep-wired.plist` sets it at boot; `mac validate` and `up` report it.
+
 ## 2026-10-12 (no residency set)
 
 - `extra_env = "FLASHNEXT_NO_RESIDENCY=1"` by default. With the engine and tower held (172.7 GiB) 10-30% of replies

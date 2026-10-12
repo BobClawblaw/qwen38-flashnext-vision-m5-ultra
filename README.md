@@ -155,9 +155,27 @@ and drafts ([`evidence/2026-10-12-lane-parity/`](evidence/2026-10-12-lane-parity
 | weights only (148.8 GiB) | a steady 112-119 / 89-92 | 0.22 s | 6.4 s |
 | every buffer as it is made | steady, except new prompts: 5 tok/s while the cache's buffers joined | | |
 
-Without a set macOS pages the engine out within seconds of idle, so the first turn after a pause takes about 2 s
-longer, and a long uncached prompt reads several times slower; under memory pressure such a read once ran into the
-GPU watchdog (`GpuFailed`, which clients retry). `extra_env = "FLASHNEXT_RESIDENCY_SESSIONS=0"` restores the set.
+**Keep it wired: `iogpu.disable_wired_collector=1`.** Without a set, the GPU driver's collector unwires the engine's
+memory a second or two after each request, and macOS then compresses or drops it: the first turn after a pause took
+about 2 s longer, a long uncached prompt read several times slower, and under memory pressure such a read ran into the
+GPU watchdog (`GpuFailed`) while the whole Mac stuttered. Turning the collector off keeps that memory wired with no
+residency set and no slow rounds. It raises no limit; the server stays inside the GPU budget above.
+
+| No residency set, one stream at 262k | Decode, 30 mixed replies | First token after 10-30 s idle | 25k-token prompt after 60 s idle |
+|---|---|---|---|
+| collector on (macOS default) | steady | 2.1-2.4 s | 24 s |
+| `iogpu.disable_wired_collector=1` | steady, 0 of 30 slow | 0.10-0.12 s (0.11 s after 5 min) | 5.7 s |
+
+`sudo sysctl iogpu.disable_wired_collector=1` lasts until the next boot. To set it at every boot:
+
+```bash
+sudo cp launchd/local.iogpu-keep-wired.plist /Library/LaunchDaemons/
+sudo chown root:wheel /Library/LaunchDaemons/local.iogpu-keep-wired.plist
+sudo launchctl bootstrap system /Library/LaunchDaemons/local.iogpu-keep-wired.plist
+```
+
+`mac validate` and `mac up` say which way it is. Apple does not document the setting; this is what it did here.
+`extra_env = "FLASHNEXT_RESIDENCY_SESSIONS=0"` restores the residency set instead.
 
 `mac validate` and `mac up` estimate the server's GPU memory (153.5 GiB for the engine, 7.5 GiB a 262k stream, the
 prompt cache) and refuse settings that, with `gpu_headroom_gib` (12) kept for other apps, pass 74% of RAM, or
