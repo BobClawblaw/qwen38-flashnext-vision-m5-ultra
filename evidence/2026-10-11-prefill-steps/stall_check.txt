@@ -1,0 +1,3 @@
+long prompt: 304917 tokens, first token 113.22 s, 2693 tok/s, needle found True
+stream 0: equal to solo True; 575 chunks arrived during the fill, largest gap 1.58 s, mean 0.079 s
+stream 1: equal to solo True; 471 chunks arrived during the fill, largest gap 1.58 s, mean 0.090 s

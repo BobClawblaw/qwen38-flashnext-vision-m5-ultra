@@ -19,13 +19,17 @@ branch, v1.0.7 plus three things:
 - **A 1M window**: static YaRN x4 past the trained 262,144 (transformers' table, unit-tested) in every rotary kernel,
   the engine's cap a runtime value (a 262k server allocates as before), slot 0 holding the full window and slots 1-3
   the trained one, long requests waiting for slot 0, and prompt chunks shortened past 262k so the indexer's scores fit.
+- **Prompt passes that don't stall the others**: a stream's prompt is read in steps between the other streams' rounds
+  (the lane core's `prefill_step`), 1,024 rows a step while others decode and only once their rounds have had as long
+  as the step before, so a long read and the replies around it share the GPU half and half; alone it reads at full
+  speed, and a short prompt's single step never waits.
   With `context = 262144` the kernels take the plain rotary, bit-identical to v1.0.7.
 
 Nothing to convert: the 6-bit checkpoint carries the tower (`vision_tower.*`, bf16, 1.7 GiB loaded with scratch).
 
 ## Measured on this Mac
 
-Mac Studio M5 Ultra, 256 GB, engine `68306275`, checkpoint `45032a19`, greedy, thinking off, the defaults (four
+Mac Studio M5 Ultra, 256 GB, engine `68306275` (`4cef40eb` for the stall check), checkpoint `45032a19`, greedy, thinking off, the defaults (four
 streams, 1,048,576 tokens, YaRN x4), served by the launchd unit on 2026-10-11
 ([`evidence/2026-10-11-1m-parallel4/`](evidence/2026-10-11-1m-parallel4/)).
 
@@ -54,6 +58,11 @@ every drafted reply byte-equal to `"draft": false`): shapes and sides, top and b
 a follow-up turn: 7/7, small images at 0.15-0.25 s to the first token, 10k-token image prompts at 2.5-3.6 s. Three image
 requests and a text request at once each equal their replies alone, twice
 ([`concurrent_images.txt`](evidence/2026-10-11-1m-parallel4/concurrent_images.txt)).
+
+A long prompt beside decoding streams (`tools/stall_check.py`, two streams writing 1,500-token replies while a
+305k-token prompt fills, [`stall_check.txt`](evidence/2026-10-11-prefill-steps/stall_check.txt)): the streams kept
+streaming, a chunk every 79-90 ms on average (the longest gap 1.6 s), their replies byte-equal to their solo runs; the
+long prompt read at 2,693 tok/s (3,643 alone) and found its needle. Before this, the streams froze for the whole pass.
 
 Quality with static YaRN x4 on every prompt, the Spark recipe's suite, thinking off
 ([`suite/`](evidence/2026-10-11-1m-parallel4/suite/report.md)), beside the same checks on the trained window's plain
@@ -118,8 +127,6 @@ As the text-only sibling's, plus:
 ## Not supported
 
 - Greedy only. No video, no image URLs (data URLs only), no grammars.
-- A prompt pass holds the engine: the other streams wait while one reads its prompt (a short request waited 170 s
-  behind a 553k-token read). Prompts within the trained window read in seconds.
 - One stream at a time past 262,144 tokens (slot 0); a second long request waits for it.
 - Image prompts are read whole and never kept by the prompt cache; `--learn` needs `parallel = 1`.
 - Past 2,048 tokens the sparse indexer scores blocks before the last image's end at their slot positions, not their

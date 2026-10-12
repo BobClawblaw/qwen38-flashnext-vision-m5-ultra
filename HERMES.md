@@ -20,8 +20,8 @@ For the agent that manages this Mac (Hermes) and for anyone else. Written 2026-1
   lists `Qwen3.8-Flash-Next-MLX-6bit`.
 - Greedy only: leave `temperature` out or send 0. A request with another temperature gets a 400.
 - Images go in `image_url` parts as data URLs (base64 PNG or JPEG), up to 4 a request and 4,096 image tokens in all.
-- A very long prompt reads at a few thousand tokens a second (a 1M-token prompt takes minutes), and while one stream
-  reads its prompt the other streams' replies pause.
+- A very long prompt reads at a few thousand tokens a second (a 1M-token prompt takes minutes). Replies running
+  beside it keep streaming: the long read and the replies share the GPU half and half until it is done.
 
 ## Managing it
 
@@ -66,6 +66,6 @@ Boot the agent out first, then use `up`/`down` by hand if needed.
 - `curl -s localhost:8888/health` hangs or refuses: check `launchctl list | grep tensorfold` and the launchd log.
 - Out of memory or the Mac stalls: something else large is loaded beside it. Never run another model of this size,
   or a heavy CPU job, while it serves.
-- Replies to images look wrong: run the image gate. If it fails, roll `tensorfold_sha` back to `68306275`, the commit
+- Replies to images look wrong: run the image gate. If it fails, roll `tensorfold_sha` back to `4cef40eb`, the commit
   this note was written against (`b103ecc2` is the earlier single-stream vision build: set `parallel = 1` and
   `context = 262144` with it).

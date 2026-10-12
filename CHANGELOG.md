@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-12
+
+- Long prompts no longer stall the other streams (engine `4cef40eb`): the Flash Next backend implements the lane core's
+  `prefill_step`, reading a prompt in steps between the other streams' rounds (1,024 rows a step beside decoding
+  streams, each step waiting until their rounds have had as long; full chunks alone; a short prompt's single step at
+  once). Two streams decoding beside a 305k-token fill got a chunk every 79-90 ms (they froze for the whole pass
+  before), byte-equal to their solo replies; the fill read at 2,693 tok/s. `tools/stall_check.py`.
+
 ## 2026-10-11 (later)
 
 - Four streams and a 1,048,576-token window by default, on TensorFold's `flashnext-vision-parallel` branch (`68306275`):

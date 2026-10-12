@@ -41,4 +41,5 @@ harness dependencies, stdlib Python only.
 - **Four streams and 1M:** `parallel = 4` uses upstream #606's shared lane path (not merged upstream); `context` past
   262,144 turns on static YaRN x4 for every prompt (short-prompt scores dip slightly) and gives slot 0 the full window.
   `load_limit_gb` passes the engine's 70% share; the defaults hold ~222 GiB. Never run anything large beside it.
-- **Long prompts hold the engine:** a prompt pass blocks the other streams (FZ_BATCH_LOG=1 times each chunk).
+- **Prompt passes step between rounds** (backend.zig prefillStep, fair share with decoding streams);
+  `tools/stall_check.py 280000` checks it. FZ_BATCH_LOG=1 times each chunk.
