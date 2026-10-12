@@ -136,6 +136,16 @@ is not:
 
 Without the cache's 24 GiB the 262k default needs about 195 GiB; with `parallel = 1` about 176 GiB.
 
+**Eight streams** ([`evidence/2026-10-12-parallel8/`](evidence/2026-10-12-parallel8/)) fit only at `context = 131072`:
+eight 262k sessions pass the 239 GB load limit and the server refuses to start. With `parallel = 8`, `context = 131072`
+and the 24 GiB cache the server holds 199 GiB once loaded plus the cache, about what four 262k streams take. Ruler,
+tok/s each / in all: prose 34 / 272, code 41 / 330, structured 37 / 293, list 42 / 339, first token 0.8 s (four streams
+on the same server: 53 / 210 to 78 / 317; one: 128 to 175). Eight greedy and eight sampled replies sent together each
+equal their solo runs (twice), as do four of each mixed and drafted against `"draft": false`. Eight 118k-token
+prompts sent at once all found their needle, the last first token after 236 s (prompt passes run one stream at a
+time). Image gate 7/7. Free memory never went under 30 GiB. Eight streams add about 7% to four's total speed and halve
+each stream's, so four stay the default.
+
 ## Requirements
 
 - One Apple Silicon Mac with 256 GB: the defaults hold about 219 GiB once the prompt cache fills (`load_limit_gb = 240`
@@ -183,7 +193,7 @@ As the text-only sibling's, plus:
 
 | Setting | Default | Notes |
 |---|---|---|
-| `parallel` | 4 | replies at once (shared lane path); 1: the single-reply driver |
+| `parallel` | 4 | replies at once (shared lane path); 1: the single-reply driver; 8 needs `context = 131072` (below) |
 | `context` | 262144 | the trained window; up to 1048576 with static YaRN x4 for every prompt (see the 1M section) |
 | `prompt_cache_gib` | 24 | kept prompt states; 0 off, -1 what 70% of RAM leaves (nothing with four streams) |
 | `prompt_cache_over_cap` | true | `--prompt-cache-over-cap`: the cache may pass the 70% share; without it 24 is refused |

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-12 (eight streams)
+
+- Measured `parallel = 8`: refused at 262k (past the 239 GB load limit), served at `context = 131072` with the 24 GiB
+  cache. 272-339 tok/s in all against four streams' 210-317, 34-42 tok/s each; every reply equals its solo run,
+  greedy and sampled. Four stay the default. Evidence: `evidence/2026-10-12-parallel8/`.
+
 ## 2026-10-12 (sampling at parallel = 1)
 
 - Engine `339b759a`: the single-reply driver (`parallel = 1`) samples too, with the same host sampler and positions,

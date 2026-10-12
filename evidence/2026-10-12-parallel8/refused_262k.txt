@@ -1,0 +1,1 @@
+info: prompt cache: 20 tokens, resumed at 0, kept 0; 6 states, 23616 MiB and 0 MiB spare of 24576 MiB (hits 0, misses 245, evicted 2, refused 0, failed 0)

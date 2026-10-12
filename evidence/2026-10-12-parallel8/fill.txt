@@ -1,0 +1,9 @@
+ok   team 0: 117645 prompt tokens, answered in 206 s: 'ZX-7000'
+ok   team 1: 117645 prompt tokens, answered in 146 s: 'ZX-7037'
+ok   team 2: 117645 prompt tokens, answered in 31 s: 'ZX-7074'
+ok   team 3: 117645 prompt tokens, answered in 116 s: 'ZX-7111'
+ok   team 4: 117645 prompt tokens, answered in 59 s: 'ZX-7148'
+ok   team 5: 117645 prompt tokens, answered in 88 s: 'ZX-7185'
+ok   team 6: 117645 prompt tokens, answered in 176 s: 'ZX-7222'
+ok   team 7: 117645 prompt tokens, answered in 236 s: 'ZX-7259'
+PASS

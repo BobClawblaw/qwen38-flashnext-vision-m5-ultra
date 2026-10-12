@@ -1,0 +1,7 @@
+ok   8 greedy together equal alone (rep 1) 
+ok   8 sampled together equal alone (rep 1) 
+ok   8 greedy together equal alone (rep 2) 
+ok   8 sampled together equal alone (rep 2) 
+ok   4 greedy + 4 sampled mixed equal alone 
+ok   drafted equals draft:false (4 greedy, 4 sampled) 
+PASS
