@@ -79,5 +79,4 @@ Boot the agent out first, then use `up`/`down` by hand if needed.
 - Video requests answer "libtfvideo" errors: the library is missing beside the binary; run `python3 -m mac build`
   and kickstart.
 - Replies to images or videos look wrong: run both gates. If they fail, roll `tensorfold_sha` back to `ddc17bb6`, the
-  commit this note was last checked against (`fdbd0228` the same with the old refusal wording) (`4cef40eb` is the same without video) (`b103ecc2` is the earlier single-stream vision build: set `parallel = 1` and
-  `context = 262144` with it).
+  last build before sampling (`python3 -m mac build` rebuilds it; requests with a temperature then get a 400).
