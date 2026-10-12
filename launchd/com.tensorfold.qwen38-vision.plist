@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Autostart at login. Install (from the recipe folder, PORT etc. come from local.toml):
+       sed -e "s|/opt/recipe|$PWD|g" -e "s|USER|$USER|g" launchd/com.tensorfold.qwen38-vision.plist \
+         > ~/Library/LaunchAgents/com.tensorfold.qwen38-vision.plist
+       launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.tensorfold.qwen38-vision.plist
+     Stop / remove: launchctl bootout gui/$(id -u)/com.tensorfold.qwen38-vision
+     `up --foreground` runs the checks, then execs tensorfold-native as this job, so KeepAlive restarts the server. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.tensorfold.qwen38-vision</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/env</string>
+    <string>python3</string>
+    <string>-m</string>
+    <string>mac</string>
+    <string>up</string>
+    <string>--foreground</string>
+    <string>--no-download</string>
+  </array>
+  <key>WorkingDirectory</key><string>/opt/recipe</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key><string>/Users/USER</string>
+    <key>PATH</key><string>/Users/USER/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>30</integer>
+  <key>StandardOutPath</key><string>/Users/USER/.cache/tensorfold-qwen38-vision/launchd.log</string>
+  <key>StandardErrorPath</key><string>/Users/USER/.cache/tensorfold-qwen38-vision/launchd.log</string>
+</dict>
+</plist>

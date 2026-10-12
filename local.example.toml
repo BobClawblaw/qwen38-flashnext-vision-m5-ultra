@@ -1,0 +1,6 @@
+# Copy to local.toml (git-ignored) and set this Mac's values. Any [section] from recipe.toml may appear here.
+[local]
+port = 8888
+
+[serve]
+profile = "chat"

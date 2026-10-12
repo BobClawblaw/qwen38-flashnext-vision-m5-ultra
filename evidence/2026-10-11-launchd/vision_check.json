@@ -1,0 +1,83 @@
+{
+ "url": "http://127.0.0.1:8888",
+ "checks": [
+  {
+   "check": "shapes and sides",
+   "ok": true,
+   "prompt_tokens": 183,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 174.75277424670986,
+   "tps_plain": 91.69299674049162,
+   "ttft": 0.181883334,
+   "reply": "There is a red circle on the left and a blue square on the right."
+  },
+  {
+   "check": "top and bottom",
+   "ok": true,
+   "prompt_tokens": 145,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 131.54905649947202,
+   "tps_plain": 88.63218382314925,
+   "ttft": 0.152837917,
+   "reply": " The shape on top is a green triangle."
+  },
+  {
+   "check": "counting",
+   "ok": true,
+   "prompt_tokens": 98,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 29.00175915970535,
+   "tps_plain": 49.15182383986336,
+   "ttft": 0.126770167,
+   "reply": "5"
+  },
+  {
+   "check": "image then 9k words",
+   "ok": true,
+   "prompt_tokens": 10299,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 22.543716991481293,
+   "tps_plain": 80.42935079911882,
+   "ttft": 2.7884535,
+   "reply": "1) A red circle and a blue square.\n2) Biscuit."
+  },
+  {
+   "check": "9k words then image",
+   "ok": true,
+   "prompt_tokens": 10266,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 82.13692910556307,
+   "tps_plain": 71.4353039224927,
+   "ttft": 2.259353083,
+   "reply": "1) Triangle\n2) Biscuit"
+  },
+  {
+   "check": "two images",
+   "ok": true,
+   "prompt_tokens": 256,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 144.46067195006037,
+   "tps_plain": 97.48854990334439,
+   "ttft": 0.203002125,
+   "reply": "The first image displays a red circle and a blue square side-by-side on a light background.\nThe second image contains five black dots arranged in a horizontal line."
+  },
+  {
+   "check": "follow-up turn",
+   "ok": true,
+   "prompt_tokens": 178,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 101.63880521958242,
+   "tps_plain": 85.71240563890652,
+   "ttft": 0.163122417,
+   "reply": "Below it is a yellow circle."
+  }
+ ],
+ "text_unchanged": true
+}

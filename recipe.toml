@@ -1,0 +1,63 @@
+# The recipe's defaults. `local.toml` next to this file overrides them for this Mac (copy local.example.toml); an
+# environment variable of the same name in upper case overrides both (PORT=8090 python3 -m mac up).
+
+[model]
+repo = "TensorFold/Qwen3.8-Flash-Next-MLX-6bit-MTP"
+revision = "45032a193a5d4126ba8534822cbaf8fb30b3e368"
+served_name = "Qwen3.8-Flash-Next-MLX-6bit"
+# repositories whose snapshot at the same revision is the same git tree; `pull` serves a cached copy of any of them
+# instead of downloading 147 GiB twice (comma-separated; none known for the 6-bit checkpoint)
+same_as = ""
+
+[engine]
+tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-vision branch (not upstream yet)
+tensorfold_sha = "b103ecc26226a4585da7e53e3563649c1c04a414"     # flashnext-vision: v1.0.7 main plus image input on Metal
+tensorfold_src = "~/github/TensorFold"   # a checkout holding the sha; `build` adds a worktree at it under tf_cache
+zig = "~/.local/zig/zig"                 # Zig 0.17.0 (.zig-version in the checkout)
+zig_cpu = "apple_m1"
+# a prebuilt tensorfold-native to serve with instead of the pinned build (a branch under test, say PR #519 for --learn);
+# empty builds the pinned sha
+binary = ""
+
+[local]
+host = "127.0.0.1"
+port = 8888
+hf_cache = "~/.cache/huggingface"
+tf_cache = "~/.cache/tensorfold-qwen38-vision"
+request_log = ""                         # a file for TENSORFOLD_REQUEST_LOG; empty logs no requests
+
+[serve]
+profile = "chat"                 # chat (MTP drafts, the default) | reference (--no-drafts, the exactness reference)
+# the window: the checkpoint's 262,144. The Metal engine serves the checkpoint's plain rotary only (config.zig refuses
+# any other rope type), so there is no 1M YaRN profile here, unlike the Spark recipe
+context = 262144
+drafts = true
+thinking = false
+max_tokens = 32768
+temperature = "0"                # the engine decodes Flash Next greedily only; a sampled default would refuse every request without one
+prompt_cache_gib = -1            # kept prompt states: -1 the engine's default (what 70% of RAM leaves, less 2 GiB), 0 off
+keep_warm = 900                  # seconds the GPU stays active after a request
+learn = false                    # shared prefixes (a system prompt and its tools) kept on disk across restarts (--learn, v1.0.7)
+learn_dir = ""                   # where learned states live; empty: the engine's default
+learn_gib = 0                    # their budget; 0: the engine's default
+vision = true                    # image input (image_url parts: data URLs; PNG, JPEG and what ImageIO decodes)
+vision_image_tokens = 4096       # image tokens a request may hold in all (a 2000x1500 photo takes 2,914)
+vision_max_images = 4            # images a request may hold
+compact_at = ""                  # "" off | "auto" | a fraction, see TensorFold's README
+dashboard = true                 # /dashboard and /stats
+api_key = ""
+extra_args = ""
+extra_env = ""
+memory_margin_gib = 8            # `up` refuses when free memory is under the engine's floor plus this
+
+[profiles.chat]
+drafts = true
+
+[profiles.reference]
+drafts = false
+
+# The Spark recipe's quality suite and decode ruler run against any OpenAI-compatible URL. `python3 -m mac suite|ruler`
+# clones it at this commit under .external/ (git-ignored) and runs them there; nothing of it is copied into this tree.
+[external]
+spark_recipe_repo = "https://github.com/BobClawblaw/qwen38-flashnext-int4mixed-2x-dgx-sparks.git"
+spark_recipe_sha = "8a7f4c80f146aeb14eaf7a7002cb07b5ad2fef53"
