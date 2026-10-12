@@ -22,17 +22,17 @@ class Defaults(unittest.TestCase):
         self.assertEqual(s.profile, "chat")
         self.assertTrue(s.drafts)
         self.assertEqual(s.context, 262144)
-        self.assertEqual(s.parallel, 1)
+        self.assertEqual(s.parallel, 2)
         args = s.serve_args("/m")
         self.assertEqual(args[:2], ["serve", "/m"])
         self.assertIn("--no-thinking", args)
         self.assertNotIn("--no-drafts", args)
         self.assertEqual(args[args.index("--temperature") + 1], "0")   # the engine decodes Flash Next greedily only
-        self.assertEqual(args[args.index("--prompt-cache-gib") + 1], "6")
+        self.assertEqual(args[args.index("--prompt-cache-gib") + 1], "8")
         self.assertIn("--prompt-cache-over-cap", args)
         self.assertIn("--dashboard", args)
         self.assertIn("--no-update-check", args)
-        self.assertNotIn("--parallel", args)   # one stream: the single-reply driver
+        self.assertEqual(args[args.index("--parallel") + 1], "2")
         self.assertEqual(s.server_env()["FLASHNEXT_LOAD_LIMIT_GB"], "240")
         self.assertEqual(args[args.index("--vision-image-tokens") + 1], "4096")
         self.assertIn("--vision", args)
@@ -143,7 +143,7 @@ class GpuBudget(unittest.TestCase):
 
     def test_defaults_fit_with_headroom(self):
         s = load()
-        self.assertAlmostEqual(config.gpu_gib(s), 167.0, places=1)    # 153.5 engine + 7.5 session + 6 cache
+        self.assertAlmostEqual(config.gpu_gib(s), 176.5, places=1)    # 153.5 engine + 2 x 7.5 sessions + 8 cache
         self.assertIn("of 189 GiB", config.gpu_check(s, 0, self.RAM))
 
     def test_four_full_streams_pass_the_budget_with_or_without_a_cache(self):

@@ -35,8 +35,8 @@ drafts = true
 thinking = false
 max_tokens = 32768
 temperature = "0"                # the server default: greedy unless a request sends a temperature
-prompt_cache_gib = 6             # kept prompt states, so an agent's next call reads only its new turns (~1 GiB a 32k one); -1 the engine's default
-prompt_cache_over_cap = true     # --prompt-cache-over-cap with a size above 0: the engine's 70% share leaves ~4.8 GiB at one stream
+prompt_cache_gib = 8             # kept prompt states, so an agent's next call reads only its new turns (~1 GiB a 32k one); -1 the engine's default
+prompt_cache_over_cap = true     # --prompt-cache-over-cap with a size above 0: the cache may pass the engine's 70% share
 keep_warm = 86400                # seconds after a request the idle keepalive (a 16-byte copy every 400 ms) holds the set
 learn = false                    # shared prefixes (a system prompt and its tools) kept on disk across restarts (--learn, v1.0.7)
 learn_dir = ""                   # where learned states live; empty: the engine's default
@@ -46,14 +46,14 @@ vision_image_tokens = 4096       # image tokens a request may hold in all (a 200
 vision_max_images = 4            # images a request may hold
 video = true                     # video input (video_url parts): builds libtfvideo over a static FFmpeg 9.0.2 once
 vision_video_tokens = 16384      # visual tokens a request's videos share (a 30 s 720p clip takes about 8,000)
-parallel = 1                     # streams at once: 1 the single-reply driver; above 1 upstream PR #606's shared lane path, which
-                                 # needs a smaller context to fit the GPU (see gpu_headroom_gib and the README)
+parallel = 2                     # streams at once (upstream PR #606's shared lane path), each at the full context; 1 the
+                                 # single-reply driver; more pass the GPU budget at 262k (see gpu_headroom_gib, the README)
 load_limit_gb = 240              # FLASHNEXT_LOAD_LIMIT_GB (parallel above 1): how far the sessions may pass the engine's 70% share
 compact_at = ""                  # "" off | "auto" | a fraction, see TensorFold's README
 dashboard = true                 # /dashboard and /stats
 api_key = ""
 extra_args = ""
-extra_env = "FLASHNEXT_RESIDENCY=all"   # every buffer in the residency set, changes committed between requests (README)
+extra_env = "FLASHNEXT_RESIDENCY=all FLASHNEXT_NO_LONE=1"   # every buffer held, changes committed between requests; no lone driver (README)
 memory_margin_gib = 8            # `up` refuses when free memory is under the engine's floor plus this
 gpu_headroom_gib = 12            # GPU memory kept for other apps (an idle ComfyUI holds 8): `up` refuses past the GPU budget
 

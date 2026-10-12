@@ -3,8 +3,8 @@
 Serve [TensorFold/Qwen3.8-Flash-Next-MLX-6bit-MTP](https://huggingface.co/TensorFold/Qwen3.8-Flash-Next-MLX-6bit-MTP)
 on one Apple M5 Ultra (256 GB) through [TensorFold](https://github.com/ashhart/TensorFold)'s native Metal engine:
 text, images and video in one OpenAI-compatible API (`image_url` and `video_url` parts), the trained 262,144-token
-window with a 6 GiB prompt cache (an agent's next call reads only its new turns), MTP drafts, a launchd unit. It serves
-one reply at a time by default, so that it fits macOS's GPU memory with room for other apps
+window with an 8 GiB prompt cache (an agent's next call reads only its new turns), MTP drafts, a launchd unit. It serves
+two replies at once by default, each up to 262,144 tokens, so that it fits macOS's GPU memory with room for other apps
 ([GPU memory](#gpu-memory)); shared streams are a setting away. A 1,048,576-token window is a setting away, with costs listed
 [below](#the-1m-window-and-its-problems).
 
@@ -138,11 +138,21 @@ is not:
 
 ## GPU memory
 
-On this Mac, with `iogpu.wired_limit_mb` unset, decode turned erratic once the GPU held about 190 GiB of the 256: the
-same request ran 30 to 207 tok/s with identical rounds, a cold prompt after an idle spell ran into the GPU watchdog
-(`GpuFailed`), and the whole Mac stuttered while macOS reclaimed and restored the server's memory. Everything on the
-GPU counts: an idle ComfyUI holds 8 GB. Four 262k streams hold about 184 GiB before any prompt cache, so they cross it
-alone. The defaults now serve one stream at 262,144 tokens with a 6 GiB cache, about 167 GiB on the GPU.
+The defaults serve two streams at 262,144 tokens with an 8 GiB prompt cache: about 189 GiB wired with every buffer
+held, about 41 GiB left free. Everything on the GPU counts (an idle ComfyUI holds 8 GB; with a model loaded, more).
+Measured on this Mac, 2026-10-12, with the residency fix below, 30 mixed single replies a run
+([`evidence/2026-10-12-lane-parity/`](evidence/2026-10-12-lane-parity/)):
+
+| Streams at 262k | Cache | Wired | Slow replies | Lone driver | Other checks |
+|---|---|---|---|---|---|
+| 1 | 6 GiB | ~181 GiB | 0 of 90 | (single-reply host) | idle first token 0.1 s |
+| 2 (default) | 8 GiB | ~189 GiB | 0 of 90 | off (`FLASHNEXT_NO_LONE=1`) | two 99k prompts beside two chats; idle 0.15 s |
+| 2 | 6 GiB | ~188 GiB | 3 of 60 | on | |
+| 4 | 5 GiB | 202-209 GiB | 2 of 30 | on | 8 streams equal solo; 25 GiB free at worst |
+
+**The lone driver** (`add3da3`'s: a request alone runs the single-reply driver's rounds, handed to the shared rounds
+when a second arrives) occasionally ran a reply at half speed here, with identical rounds; with it off a single
+request runs the shared rounds (priced drafts) at the same speeds and none was slow, so the default turns it off.
 
 **Residency: every buffer, kept whole** (`FLASHNEXT_RESIDENCY=all`, the default `extra_env`). A second or two after a
 request macOS unwires an idle process's GPU memory and may compress or drop it; the next request then waits while it
@@ -165,9 +175,9 @@ with no set; it is not needed now, and it costs other apps the memory macOS coul
 
 `mac validate` and `mac up` estimate the server's GPU memory (153.5 GiB for the engine, 7.5 GiB a 262k stream, the
 prompt cache) and refuse settings that, with `gpu_headroom_gib` (12) kept for other apps, pass 74% of RAM, or
-`iogpu.wired_limit_mb` when it is set. One stream at 262k with 6 GiB: about 167 GiB of a 189 GiB budget. Two streams
-fit at `context = 131072`; four need `context = 65536` or a raised limit (`sudo sysctl iogpu.wired_limit_mb=...`, until
-the next boot), at the cost of the RAM other apps keep.
+`iogpu.wired_limit_mb` when it is set. Two streams at 262k with 8 GiB: about 176.5 GiB of a 189 GiB budget (an estimate
+from the engine's buffers; wired memory runs ~12 GiB above it). Four streams at 262k pass it; run them with
+`gpu_headroom_gib = 0` and `prompt_cache_gib = 5` at the cost of the free memory and the slow replies above.
 
 **Eight streams** ([`evidence/2026-10-12-parallel8/`](evidence/2026-10-12-parallel8/)) fit only at `context = 131072`:
 eight 262k sessions pass the 239 GB load limit and the server refuses to start. With `parallel = 8`, `context = 131072`
@@ -181,8 +191,8 @@ each stream's, so four stay the default.
 
 ## Requirements
 
-- One Apple Silicon Mac with 256 GB: the defaults hold about 167 GiB on the GPU once the prompt cache fills
-  (`prompt_cache_over_cap` lets the 6 GiB pass the engine's 70% share). See [GPU memory](#gpu-memory) for more streams.
+- One Apple Silicon Mac with 256 GB: the defaults keep about 189 GiB wired once the prompt cache fills
+  (`prompt_cache_over_cap` lets the 8 GiB pass the engine's 70% share). See [GPU memory](#gpu-memory).
 - macOS with Xcode and its Metal toolchain, Zig 0.17.0, Python 3.11+ (stdlib only), the `hf` CLI, and for video
   `curl` and `make` (FFmpeg's source is fetched and checked by SHA-256). Disk: 147 GiB.
 
@@ -225,10 +235,10 @@ As the text-only sibling's, plus:
 
 | Setting | Default | Notes |
 |---|---|---|
-| `parallel` | 1 | replies at once: 1 the single-reply driver; above 1 the shared lane path, within the GPU budget |
+| `parallel` | 2 | replies at once on the shared lane path; 1 the single-reply driver; within the GPU budget |
 | `context` | 262144 | the trained window; up to 1048576 with static YaRN x4 for every prompt (see the 1M section) |
-| `prompt_cache_gib` | 6 | kept prompt states (about 1 GiB a 32k-token conversation); 0 off, -1 what 70% of RAM leaves |
-| `prompt_cache_over_cap` | true | `--prompt-cache-over-cap`: the cache may pass the 70% share (4.8 GiB at one stream) |
+| `prompt_cache_gib` | 8 | kept prompt states (about 1 GiB a 32k-token conversation); 0 off, -1 what 70% of RAM leaves |
+| `prompt_cache_over_cap` | true | `--prompt-cache-over-cap`: the cache may pass the engine's 70% share |
 | `gpu_headroom_gib` | 12 | GPU memory kept for other apps; `validate` and `up` refuse settings past the budget |
 | `load_limit_gb` | 240 | `FLASHNEXT_LOAD_LIMIT_GB`: how far the slots may take the server past 70% of RAM |
 | `vision` | true | image input; false serves text only, without the tower |

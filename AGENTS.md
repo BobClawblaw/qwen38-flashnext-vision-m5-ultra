@@ -38,11 +38,11 @@ harness dependencies, stdlib Python only.
   is the obvious speed-up.
 - **On this Mac** the launchd unit serves it on :8888 to the LAN, no API key, superseding MTPLX: see HERMES.md. Don't
   `mac up`/`down` while the unit is loaded.
-- **GPU memory decides the shape:** with `iogpu.wired_limit_mb` unset, macOS reclaims a server's GPU memory past about
-  190 GiB of the 256 (decode 30-207 tok/s on one request, `GpuFailed` on cold prompts, a stuttering Mac). The default
-  is one stream (`parallel = 1`) at the trained 262,144 with a 6 GiB prompt cache, ~167 GiB; `mac validate` and `up`
-  refuse settings past 74% of RAM less `gpu_headroom_gib` (config.gpu_check). `parallel` above 1 uses upstream #606's
-  shared lane path (not merged): two streams fit at 131k, four at 65k. Never raise the wired limit or run anything
-  large beside it without asking.
+- **Memory decides the shape:** every buffer is held (`FLASHNEXT_RESIDENCY=all`), so the server's memory stays wired.
+  The default is two streams (`parallel = 2`, upstream #606's shared lane path, not merged) at the trained 262,144 with
+  an 8 GiB prompt cache, ~189 GiB wired, and the lone driver off (`FLASHNEXT_NO_LONE=1`: it ran some replies at half
+  speed). `mac validate` and `up` refuse settings past 74% of RAM less `gpu_headroom_gib` (config.gpu_check). Four
+  streams worked at 202-209 GiB wired but left 25 GiB free and ran some replies slow. Never raise the wired limit or
+  run anything large beside it without asking.
 - **Prompt passes step between rounds** (backend.zig prefillStep, fair share with decoding streams);
   `tools/stall_check.py 280000` checks it. FZ_BATCH_LOG=1 times each chunk.

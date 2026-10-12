@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-12 (two streams)
+
+- Defaults: `parallel = 2`, `prompt_cache_gib = 8`, `FLASHNEXT_NO_LONE=1`. Two 262k streams with every buffer held:
+  0 of 90 mixed replies slow, ~189 GiB wired, ~41 GiB free, idle first token 0.15 s, two 99k-token prompts beside
+  two chats. The lone driver ran 3 of 60 replies at half speed (identical rounds); the shared rounds match its speed.
+  Four 262k streams (5 GiB cache) worked but at 202-209 GiB wired, 25 GiB free, 2 of 30 slow.
+
 ## 2026-10-12 (a residency set kept whole)
 
 - Engine `7808bee8` with `FLASHNEXT_RESIDENCY=all`: every live Metal buffer in the residency set, buffers made or
