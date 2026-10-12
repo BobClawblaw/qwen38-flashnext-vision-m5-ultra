@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-12 (pipelined sampling at parallel = 1)
+
+- Engine `160fed1c`: `parallel = 1` sampled rounds run two deep, the accept kernel waiting on the host's draws through
+  a shared event. Sampled 0.7 decode 170.7 -> 173.9 tok/s (code) and 135.9 -> 139.8 (chat); greedy unchanged; all 12
+  sampled replies equal `339b759a`'s. The four-stream path is unchanged.
+
 ## 2026-10-12 (eight streams)
 
 - Measured `parallel = 8`: refused at 262k (past the 239 GB load limit), served at `context = 131072` with the 24 GiB
