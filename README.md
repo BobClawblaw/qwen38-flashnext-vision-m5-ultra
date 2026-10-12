@@ -149,6 +149,7 @@ Measured on this Mac, 2026-10-12, with the residency fix below, 30 mixed single 
 | 2 (default) | 8 GiB | ~189 GiB | 0 of 90 | off (`FLASHNEXT_NO_LONE=1`) | two 99k prompts beside two chats; idle 0.15 s |
 | 2 | 6 GiB | ~188 GiB | 3 of 60 | on | |
 | 4 | 5 GiB | 202-209 GiB | 2 of 30 | on | 8 streams equal solo; 25 GiB free at worst |
+| 4 | 5 GiB | ~206 GiB | 0 of 60 | off | two 99k prompts beside two chats; 26.5 GiB free at worst |
 
 **The lone driver** (`add3da3`'s: a request alone runs the single-reply driver's rounds, handed to the shared rounds
 when a second arrives) occasionally ran a reply at half speed here, with identical rounds; with it off a single
