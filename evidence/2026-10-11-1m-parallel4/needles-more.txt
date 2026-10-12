@@ -1,0 +1,5 @@
+Needle prompts (tools/prompt_pass.py, one request each) on the same engine and settings, run by hand on 2026-10-11:
+  304917 tokens  ttft   86.11 s    3541 tok/s  found=True  (a short request sent 20 s in waited for this prompt pass)
+  440357 tokens  ttft  129.27 s    3406 tok/s  found=True
+  553208 tokens  ttft  170.83 s    3238 tok/s  found=True  (a short request sent with it waited 170 s)
+The 553,208 and 982,016-token rows with their JSON are in prompt_pass_long.json and prompt_pass_1m.json.

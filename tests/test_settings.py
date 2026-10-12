@@ -21,7 +21,8 @@ class Defaults(unittest.TestCase):
         s = load()
         self.assertEqual(s.profile, "chat")
         self.assertTrue(s.drafts)
-        self.assertEqual(s.context, 262144)
+        self.assertEqual(s.context, 1048576)
+        self.assertEqual(s.parallel, 4)
         args = s.serve_args("/m")
         self.assertEqual(args[:2], ["serve", "/m"])
         self.assertIn("--no-thinking", args)
@@ -30,7 +31,8 @@ class Defaults(unittest.TestCase):
         self.assertNotIn("--prompt-cache-gib", args)     # -1: the engine's default
         self.assertIn("--dashboard", args)
         self.assertIn("--no-update-check", args)
-        self.assertNotIn("--parallel", args)             # one lane on Metal
+        self.assertEqual(args[args.index("--parallel") + 1], "4")
+        self.assertEqual(s.server_env()["FLASHNEXT_LOAD_LIMIT_GB"], "240")
         self.assertEqual(args[args.index("--vision-image-tokens") + 1], "4096")
         self.assertIn("--vision", args)
 
@@ -58,7 +60,7 @@ class Defaults(unittest.TestCase):
         self.assertTrue(str(s.snapshot_dir()).endswith(f"models--TensorFold--Qwen3.8-Flash-Next-MLX-6bit-MTP/snapshots/{s.revision}"))
 
     def test_learn_flags(self):
-        s = load(learn="1", learn_dir="~/learned", learn_gib="24")
+        s = load(learn="1", learn_dir="~/learned", learn_gib="24", parallel="1")
         args = s.serve_args("/m")
         self.assertIn("--learn", args)
         self.assertTrue(args[args.index("--learn-dir") + 1].endswith("/learned"))
@@ -79,7 +81,7 @@ class Refusals(unittest.TestCase):
         self.assertIn(fragment, str(cm.exception))
 
     def test_context_bounds(self):
-        self.refuse("plain rotary", context="1048576")
+        self.refuse("YaRN x4", context="2097152")
         self.refuse("multiple of 256", context="1000")
         self.refuse("not a decimal integer", context="0100")
 
@@ -89,7 +91,8 @@ class Refusals(unittest.TestCase):
     def test_owned_and_unused_flags(self):
         self.refuse("passes itself", extra_args="--port 1")
         self.refuse("passes itself", extra_args="--no-dra")          # a prefix
-        self.refuse("not a Flash Next-on-Metal flag", extra_args="--parallel 4")
+        self.refuse("passes itself", extra_args="--parallel 4")
+        self.refuse("parallel=1", learn="1")
         self.refuse("not a Flash Next-on-Metal flag", extra_args="--kv-dtype int8")
 
     def test_vision_off_and_bounds(self):

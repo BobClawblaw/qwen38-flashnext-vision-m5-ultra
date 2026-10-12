@@ -1,0 +1,14 @@
+| Check | Passed | Score | Time | Note |
+|---|---:|---:|---:|---|
+| drafts | 12/12 | 100.0% | 33s | drafted 129 tok/s vs undrafted 80 tok/s |
+| streaming | 4/4 | 100.0% | 7s | identical |
+| multiturn | 8/8 | 100.0% | 9s | recalled 8/8 facts |
+| stop | 3/3 | 100.0% | 1s | 3/3 stopped before the string |
+| thinking | 10/10 | 100.0% | 8s | 0 replies without reasoning_content, 0 with think tags in content |
+| copy | 2/2 | 100.0% | 1s | 2/2 byte-identical |
+| max-tokens | 3/3 | 100.0% | 1s | 3/3 exact |
+| tools | 56/60 | 93.3% | 42s | 'Set a timer for 5 minutes.': got [('set_timer', {'seconds': 300, 'label': '5 minutes'})] |
+| json | 30/30 | 100.0% | 7s | all valid |
+| ifeval | 132/150 | 88.0% | 297s | loose 132/150, strict 124/150, 150 covered prompts |
+| gsm8k | 241/250 | 96.4% | 328s | misses at [12, 40, 85, 93, 119, 139, 163, 182, 234] |
+| concurrent | 12/12 | 100.0% | 20s | 4 streams together vs alone |

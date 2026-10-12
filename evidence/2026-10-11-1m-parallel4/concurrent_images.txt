@@ -1,0 +1,2 @@
+round 0: 3 images + 1 text at once in 2.0 s; each equal to alone: True
+round 1: 3 images + 1 text at once in 1.7 s; each equal to alone: True

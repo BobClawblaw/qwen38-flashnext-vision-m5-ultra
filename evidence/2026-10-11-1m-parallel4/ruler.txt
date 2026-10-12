@@ -1,0 +1,8 @@
+  c=1   prose        131.3 /   131.3 tok/s   ttft 0.16s   251 tokens a reply
+  c=1   code         178.9 /   178.9 tok/s   ttft 0.16s   225 tokens a reply
+  c=1   structured   160.2 /   160.2 tok/s   ttft 0.12s   167 tokens a reply
+  c=1   list         183.9 /   183.9 tok/s   ttft 0.16s   224 tokens a reply
+  c=4   prose         52.0 /   211.0 tok/s   ttft 0.37s   244 tokens a reply
+  c=4   code          77.0 /   311.5 tok/s   ttft 0.37s   234 tokens a reply
+  c=4   structured    64.7 /   259.8 tok/s   ttft 0.42s   146 tokens a reply
+  c=4   list          78.8 /   317.6 tok/s   ttft 0.37s   215 tokens a reply

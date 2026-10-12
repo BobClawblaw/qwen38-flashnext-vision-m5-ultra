@@ -1,0 +1,14 @@
+{
+ "name": "tools",
+ "score": 0.9333333333333333,
+ "cases": 60,
+ "passed": 56,
+ "seconds": 42.3951358795166,
+ "notes": [
+  "'Set a timer for 5 minutes.': got [('set_timer', {'seconds': 300, 'label': '5 minutes'})]",
+  "'Set two timers: 10 minutes for pasta and': got [('set_timer', {'seconds': 600, 'label': 'pasta'})]",
+  "'Daily reminder to stretch from 2026-10-0': got [('create_reminder', {'text': 'daily stretch', 'when': '2026-10-08', 'repeat': 'daily'})]",
+  "\"Thanks, that's all for today.\": got [('get_weather', {'city': 'london'})]"
+ ],
+ "details": {}
+}

@@ -1,0 +1,24 @@
+{
+ "url": "http://127.0.0.1:8888",
+ "model": "x",
+ "rows": [
+  {
+   "asked": 500000,
+   "prompt_tokens": 553208,
+   "ttft_s": 172.33,
+   "prefill_tok_s": 3210,
+   "found": true,
+   "cached": 0,
+   "reply": "The access code for run 1000 is 915117."
+  },
+  {
+   "asked": 980000,
+   "prompt_tokens": 0,
+   "ttft_s": 0,
+   "prefill_tok_s": null,
+   "found": false,
+   "cached": 0,
+   "reply": ""
+  }
+ ]
+}

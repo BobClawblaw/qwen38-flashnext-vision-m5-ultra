@@ -1,7 +1,7 @@
 # Working on this recipe
 
 Serve `TensorFold/Qwen3.8-Flash-Next-MLX-6bit-MTP` with image input on one M5 Ultra with TensorFold's native Metal
-engine, built from the BobClawblaw/TensorFold `flashnext-vision` branch. Everything
+engine, built from the BobClawblaw/TensorFold `flashnext-vision-parallel` branch (vision, #606 streams, 1M). Everything
 in this tree is original to this project: no code copied from other recipes (the Spark and GLM recipes included), no
 harness dependencies, stdlib Python only.
 
@@ -13,7 +13,7 @@ harness dependencies, stdlib Python only.
   since 2026-10-09. Do not pin another precision; a mixed layout is upstream engine work.
 - **Greedy only.** The engine has no sampler for Flash Next and refuses a temperature. `temperature = "0"` keeps the
   server's own default greedy so requests without one are served; never clear it.
-- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-vision `b103ecc2`, v1.0.7 plus vision) and built into a worktree under `tf_cache`; never build
+- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-vision-parallel `68306275`) and built into a worktree under `tf_cache`; never build
   in the user's checkout. To try a branch, build it elsewhere and point `binary` at it; re-pin only after the suite and
   the ruler rerun.
 - **The Spark recipe's suite and ruler are called, not copied.** `python3 -m mac suite` and `ruler` run them from a
@@ -30,14 +30,15 @@ harness dependencies, stdlib Python only.
 - **Suite plumbing on this Mac:** give the ruler and suite absolute `--json`/`--out` paths (they run from the clone);
   HumanEval needs Docker (Colima here), `--sandbox-image python:3.12-slim`, and `TMPDIR` under `$HOME` (Colima shares
   only home); dataset downloads need `SSL_CERT_FILE` from certifi on python.org's Python.
-- **Four streams exist upstream, not here:** ashhart/TensorFold#606 (shared lane core for Flash Next on Metal) was run
-  on this Mac from a merge onto main (the README's table). A 65k window with four slots hits the engine's 70% RAM cap;
-  16k fits. Re-measure when it lands as the default path; until then `--parallel` stays refused.
-- **Not on Metal in v1.0.7 for Flash Next:** `--parallel` past one reply, `--kv-dtype`, `--vision`, `--tool-system`,
-  grammars, YaRN. The guards refuse the flags so a setting is never silently ignored.
+
+- **Not served here:** video, image URLs, `--kv-dtype`, `--tool-system`, grammars, `--speed-up`; the guards refuse the flags.
 - **Vision:** `tools/vision_check.py` is the image gate (stdlib, draws its own images); run it after any engine or
   setting change. Image prompts are never kept by the prompt cache (their multimodal frame depends on every image).
   The tower's attention keeps fp32 scores in memory: a full-size photo takes ~1.5 s in it. A fused attention kernel
   is the obvious speed-up.
 - **On this Mac** the launchd unit serves it on :8888 to the LAN, no API key, superseding MTPLX: see HERMES.md. Don't
   `mac up`/`down` while the unit is loaded.
+- **Four streams and 1M:** `parallel = 4` uses upstream #606's shared lane path (not merged upstream); `context` past
+  262,144 turns on static YaRN x4 for every prompt (short-prompt scores dip slightly) and gives slot 0 the full window.
+  `load_limit_gb` passes the engine's 70% share; the defaults hold ~222 GiB. Never run anything large beside it.
+- **Long prompts hold the engine:** a prompt pass blocks the other streams (FZ_BATCH_LOG=1 times each chunk).

@@ -10,8 +10,8 @@ served_name = "Qwen3.8-Flash-Next-MLX-6bit"
 same_as = ""
 
 [engine]
-tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-vision branch (not upstream yet)
-tensorfold_sha = "b103ecc26226a4585da7e53e3563649c1c04a414"     # flashnext-vision: v1.0.7 main plus image input on Metal
+tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-vision-parallel branch (not upstream yet)
+tensorfold_sha = "68306275f1663bf52326d2a3ce8556897662f955"     # flashnext-vision-parallel: v1.0.7, vision, #606 streams, 1M
 tensorfold_src = "~/github/TensorFold"   # a checkout holding the sha; `build` adds a worktree at it under tf_cache
 zig = "~/.local/zig/zig"                 # Zig 0.17.0 (.zig-version in the checkout)
 zig_cpu = "apple_m1"
@@ -30,7 +30,7 @@ request_log = ""                         # a file for TENSORFOLD_REQUEST_LOG; em
 profile = "chat"                 # chat (MTP drafts, the default) | reference (--no-drafts, the exactness reference)
 # the window: the checkpoint's 262,144. The Metal engine serves the checkpoint's plain rotary only (config.zig refuses
 # any other rope type), so there is no 1M YaRN profile here, unlike the Spark recipe
-context = 262144
+context = 1048576                # past the trained 262,144 with static YaRN x4 (every prompt); slot 0 holds it, the others 262,144
 drafts = true
 thinking = false
 max_tokens = 32768
@@ -43,6 +43,8 @@ learn_gib = 0                    # their budget; 0: the engine's default
 vision = true                    # image input (image_url parts: data URLs; PNG, JPEG and what ImageIO decodes)
 vision_image_tokens = 4096       # image tokens a request may hold in all (a 2000x1500 photo takes 2,914)
 vision_max_images = 4            # images a request may hold
+parallel = 4                     # streams at once (upstream PR #606's shared lane path); 1: the single-reply driver
+load_limit_gb = 240              # FLASHNEXT_LOAD_LIMIT_GB: four streams at 1M pass the engine's 70% share (~222 GiB in use)
 compact_at = ""                  # "" off | "auto" | a fraction, see TensorFold's README
 dashboard = true                 # /dashboard and /stats
 api_key = ""

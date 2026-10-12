@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-11 (later)
+
+- Four streams and a 1,048,576-token window by default, on TensorFold's `flashnext-vision-parallel` branch (`68306275`):
+  upstream PR #606's shared lane path with images in each stream's prefill, the load limit offered on #606, static
+  YaRN x4 past the trained window in every rotary kernel, slot 0 holding the full window. Ruler 131-184 tok/s one user,
+  211-318 aggregate at four; needles found at 305k, 440k, 553k and 982k tokens; image gate 7/7; three images and a
+  text request at once equal their replies alone. Under YaRN: tools 56/60, IFEval 132/124, GSM8K 241/250.
+  `parallel`, `load_limit_gb` settings; `context` up to 1,048,576; `tools/prompt_pass.py`.
+
 ## 2026-10-11
 
 - First version: Qwen3.8-Flash-Next 6-bit with image input on one M5 Ultra, on the `flashnext-vision` branch of

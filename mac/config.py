@@ -14,15 +14,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILES = ("chat", "reference")
-TRAINED_CONTEXT = 262144             # the checkpoint's max_position_embeddings; the Metal engine serves the plain rotary only
+TRAINED_CONTEXT = 262144             # the checkpoint's max_position_embeddings
+MAX_CONTEXT = 4 * TRAINED_CONTEXT     # past it the engine rotates with static YaRN x4
 # flags `serve_args` builds itself; EXTRA_ARGS may not set them (the parser keeps the last value); TensorFold's parser
 # takes unambiguous prefixes, so any prefix of these is refused too
 OWNED_FLAGS = ("--host", "--port", "--name", "--context", "--max-tokens", "--thinking", "--no-thinking", "--no-drafts",
                "--no-update-check", "--temperature", "--prompt-cache-gib", "--keep-warm", "--learn", "--learn-dir", "--learn-gib", "--compact-at",
-               "--vision", "--vision-image-tokens", "--vision-max-images",
+               "--vision", "--vision-image-tokens", "--vision-max-images", "--parallel",
                "--dashboard", "--api-key")
 # flags the native server has for other families or platforms; refused so a setting is not silently ignored
-UNUSED_FLAGS = ("--speed-up", "--backend", "--device", "--segments", "--parallel", "--kv-dtype", "--tp", "--rank",
+UNUSED_FLAGS = ("--speed-up", "--backend", "--device", "--segments", "--kv-dtype", "--tp", "--rank",
                 "--master", "--master-port", "--vision-urls", "--vision-video-tokens", "--tool-system")
 
 
@@ -65,6 +66,8 @@ class Settings:
     vision: bool
     vision_image_tokens: int
     vision_max_images: int
+    parallel: int
+    load_limit_gb: float
     compact_at: str
     dashboard: bool
     api_key: str
@@ -142,6 +145,8 @@ class Settings:
                 args += ["--learn-gib", str(self.learn_gib)]
         if self.vision:
             args += ["--vision", "--vision-image-tokens", str(self.vision_image_tokens), "--vision-max-images", str(self.vision_max_images)]
+        if self.parallel > 1:
+            args += ["--parallel", str(self.parallel)]
         if self.compact_at:
             args += ["--compact-at", self.compact_at]
         if self.dashboard:
@@ -153,6 +158,8 @@ class Settings:
     def server_env(self) -> dict[str, str]:
         env = dict(os.environ)
         env.update({"HF_HOME": str(self.hf_cache), "HF_HUB_OFFLINE": "1", "TENSORFOLD_NO_UPDATE_CHECK": "1"})
+        if self.load_limit_gb > 0:
+            env["FLASHNEXT_LOAD_LIMIT_GB"] = f"{self.load_limit_gb:g}"
         if self.request_log:
             env["TENSORFOLD_REQUEST_LOG"] = str(Path(self.request_log).expanduser())
         for kv in self.extra_env_pairs:
@@ -163,7 +170,7 @@ class Settings:
     def summary(self) -> str:
         bin_ = self.binary or f"build@{self.tensorfold_sha[:8]}"
         return (f"profile={self.profile} ctx={self.context} drafts={int(self.drafts)} thinking={int(self.thinking)} "
-                f"temp={self.temperature or 'checkpoint'} prompt_cache={self.prompt_cache_gib} learn={int(self.learn)} vision={int(self.vision)} "
+                f"temp={self.temperature or 'checkpoint'} prompt_cache={self.prompt_cache_gib} learn={int(self.learn)} vision={int(self.vision)} parallel={self.parallel} "
                 f"engine={bin_} model={self.repo}@{self.revision[:8]} url={self.url}")
 
 
@@ -247,13 +254,14 @@ def load(local_file: Path | str | None = None, env: dict[str, str] | None = None
 def validate(s: Settings) -> None:
     for name, lo, hi in (("port", 1, 65535), ("max_tokens", 1, 1 << 24), ("prompt_cache_gib", -1, 1024),
                          ("keep_warm", 0, 86400), ("learn_gib", 0, 1024), ("memory_margin_gib", 0, 256),
-                         ("vision_image_tokens", 64, 16384), ("vision_max_images", 1, 16)):
+                         ("vision_image_tokens", 64, 16384), ("vision_max_images", 1, 16), ("parallel", 1, 8),
+                         ("load_limit_gb", 0, 256)):
         v = getattr(s, name)
         if not lo <= v <= hi:
             raise ConfigError(f"{name}={v} is outside [{lo}, {hi}]")
-    if not 256 <= s.context <= TRAINED_CONTEXT:
-        raise ConfigError(f"context={s.context} must be in [256, {TRAINED_CONTEXT}]: the Metal engine serves the "
-                          "checkpoint's trained window on the plain rotary (no YaRN profile)")
+    if not 256 <= s.context <= MAX_CONTEXT:
+        raise ConfigError(f"context={s.context} must be in [256, {MAX_CONTEXT}]: the engine reaches four times the trained "
+                          "window with static YaRN x4")
     if s.context % 256:
         raise ConfigError(f"context={s.context} must be a multiple of 256")
     for name in ("revision", "tensorfold_sha", "spark_recipe_sha"):
@@ -267,6 +275,8 @@ def validate(s: Settings) -> None:
         raise ConfigError(f"temperature={s.temperature!r} must be a decimal such as 0 or 0.7, or empty for the checkpoint's")
     if s.compact_at and s.compact_at != "auto" and not re.fullmatch(r"0?\.[0-9]+|1(\.0+)?", s.compact_at):
         raise ConfigError(f"compact_at={s.compact_at!r} must be empty, auto or a fraction in (0, 1]")
+    if s.parallel > 1 and s.learn:
+        raise ConfigError("learn=true needs parallel=1: the shared sessions keep no learned states yet")
     if s.learn_dir and not s.learn:
         raise ConfigError("learn_dir is set but learn=false: set learn=true or clear learn_dir")
     if s.binary and not Path(s.binary).expanduser().is_file():
@@ -284,7 +294,7 @@ def validate(s: Settings) -> None:
         for unused in UNUSED_FLAGS:
             if unused.startswith(flag):
                 raise ConfigError(f"extra_args sets {word} ({unused}): not a Flash Next-on-Metal flag in this engine "
-                                  "(one lane, one Mac; image URLs, video, kv-dtype, tool-system and grammars are not served for Flash Next here)")
+                                  "(one Mac; image URLs, video, kv-dtype, tool-system and grammars are not served for Flash Next here)")
     for kv in s.extra_env_pairs:
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", kv):
             raise ConfigError(f"extra_env entry {kv!r} is not KEY=VALUE")
