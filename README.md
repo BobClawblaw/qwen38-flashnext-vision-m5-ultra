@@ -142,10 +142,22 @@ On this Mac, with `iogpu.wired_limit_mb` unset, decode turned erratic once the G
 same request ran 30 to 207 tok/s with identical rounds, a cold prompt after an idle spell ran into the GPU watchdog
 (`GpuFailed`), and the whole Mac stuttered while macOS reclaimed and restored the server's memory. Everything on the
 GPU counts: an idle ComfyUI holds 8 GB. Four 262k streams hold about 184 GiB before any prompt cache, so they cross it
-alone. The defaults now serve one stream at 262,144 tokens with a 6 GiB cache: 173 GB on the GPU and 0.1 s to the first
-token after an idle spell, an idle ComfyUI beside it. Most replies decode at 201-208 / 137 tok/s on code / prose, but
-some still run at 50-90 with the same rounds (the GPU slower, not the drafts), also at 174 GiB in all; the cause is
-not found yet, so the budget is necessary, not yet sufficient.
+alone. The defaults now serve one stream at 262,144 tokens with a 6 GiB cache, about 167 GiB on the GPU.
+
+**No residency set** (`FLASHNEXT_NO_RESIDENCY=1`, the default `extra_env`). The engine's residency set keeps its
+memory wired between requests, but rounds that touch both held and unheld buffers run slower, with identical rounds
+and drafts ([`evidence/2026-10-12-lane-parity/`](evidence/2026-10-12-lane-parity/), upstream #732):
+
+| Residency, one stream at 262k | Decode, code / prose (tok/s) | First token after idle | 25k-token prompt after 60 s idle |
+|---|---|---|---|
+| none (default) | 206-207 / 136-137 on every reply (30 of 30) | 2.1-2.4 s | 24 s |
+| engine and tower (172.7 GiB) | 207 / 137 on 70-90% of replies, the rest 50-100 | 0.1 s | 5.9 s |
+| weights only (148.8 GiB) | a steady 112-119 / 89-92 | 0.22 s | 6.4 s |
+| every buffer as it is made | steady, except new prompts: 5 tok/s while the cache's buffers joined | | |
+
+Without a set macOS pages the engine out within seconds of idle, so the first turn after a pause takes about 2 s
+longer, and a long uncached prompt reads several times slower; under memory pressure such a read once ran into the
+GPU watchdog (`GpuFailed`, which clients retry). `extra_env = "FLASHNEXT_RESIDENCY_SESSIONS=0"` restores the set.
 
 `mac validate` and `mac up` estimate the server's GPU memory (153.5 GiB for the engine, 7.5 GiB a 262k stream, the
 prompt cache) and refuse settings that, with `gpu_headroom_gib` (12) kept for other apps, pass 74% of RAM, or

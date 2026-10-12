@@ -53,7 +53,7 @@ compact_at = ""                  # "" off | "auto" | a fraction, see TensorFold'
 dashboard = true                 # /dashboard and /stats
 api_key = ""
 extra_args = ""
-extra_env = "FLASHNEXT_RESIDENCY_SESSIONS=0"   # pin the weights and engine (173 GiB), not the extra sessions: the full 196 GiB set slowed decode 3x, none let idle macOS page the weights out
+extra_env = "FLASHNEXT_NO_RESIDENCY=1"   # no residency set: decode steady at full speed; any set made some rounds 2-40x slower (README)
 memory_margin_gib = 8            # `up` refuses when free memory is under the engine's floor plus this
 gpu_headroom_gib = 12            # GPU memory kept for other apps (an idle ComfyUI holds 8): `up` refuses past the GPU budget
 

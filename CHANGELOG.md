@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-12 (no residency set)
+
+- `extra_env = "FLASHNEXT_NO_RESIDENCY=1"` by default. With the engine and tower held (172.7 GiB) 10-30% of replies
+  decoded at 50-100 tok/s with identical rounds, including a rerun of the configuration that measured 10/10 steady at
+  14:00; with weights only every reply ran ~45% slower; holding each buffer as made stalled new prompts at 5 tok/s.
+  Without a set: 30 of 30 replies at full speed, the first token after idle ~2 s, a 25k-token prompt after a minute
+  idle 24 s (5.9 s with the set). README: the residency table.
+
 ## 2026-10-12 (one stream, a GPU budget)
 
 - Defaults: `parallel = 1` and `prompt_cache_gib = 6` (were 4 and 24). Four 262k streams hold about 184 GiB on the GPU
