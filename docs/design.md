@@ -23,6 +23,7 @@ stdlib Python (`mac/`), written for this recipe.
 
 What the Spark recipe has that this one does not, and why: two ranks (one Mac here; TensorFold's two-Mac speed-up
 mode exists but is a different recipe), Docker and an image (a native binary), a converter (the engine reads this
-checkpoint as published), YaRN to 1M (the Metal config check accepts the default rope type only), `--parallel`
-(Flash Next on Metal has one lane), `--kv-dtype`, `--vision`, `--tool-system` and grammars (GLM's or CUDA's on
-v1.0.7), and any precision but 6-bit (the engine's Flash Next kernels; see AGENTS.md). Images: the engine branch's vision path (README).
+checkpoint as published), `--kv-dtype`, `--tool-system` and grammars (GLM's or CUDA's on v1.0.7), and any precision
+but 6-bit (the engine's Flash Next kernels; see AGENTS.md). The engine branch adds what v1.0.7 lacked here: four
+streams (#606), images and video, and static YaRN to 1M, which is not the default: at 1M four streams leave no memory
+for the prompt cache (README, "The 1M window and its problems").
