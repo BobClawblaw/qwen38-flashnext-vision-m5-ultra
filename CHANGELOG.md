@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-12 (later)
+
+- Video input (engine `fdbd0228`, TensorFold branch `flashnext-video`: upstream #618's video path merged onto
+  `flashnext-vision-parallel`): `video_url` parts in MP4, MOV, WebM or MKV (H.264, HEVC, VP8, VP9, MPEG-4), sampled,
+  sized and timed as transformers' Qwen3-VL video processor does at the checkpoint's bounds, each pair of frames one
+  image to the tower, each written as `<X.Y seconds>` then its rows. `/tokenize` equals transformers' `input_ids` on 12
+  clips; `tools/video_check.py` 7/7 (direction, color, position, two scenes in order over 30 s of 720p, a video beside
+  an image, concurrent equal to alone); image gate 7/7. `video` and `vision_video_tokens` settings; `mac build` builds
+  a static FFmpeg 9.0.2 and libtfvideo once.
+
 ## 2026-10-12
 
 - Long prompts no longer stall the other streams (engine `4cef40eb`): the Flash Next backend implements the lane core's

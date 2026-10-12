@@ -40,11 +40,32 @@ def ensure_source(s: Settings) -> Path:
 
 
 def ensure_binary(s: Settings, rebuild: bool = False) -> Path:
-    """The binary to serve with: `binary` as given, or the pinned sha built once (zig build native)."""
+    """The binary to serve with: `binary` as given, or the pinned sha built once (zig build native), with libtfvideo."""
     if s.binary:
         return s.run_binary
-    if s.built_binary.is_file() and not rebuild:
-        return s.built_binary
+    if not s.built_binary.is_file() or rebuild:
+        build(s)
+    if s.vision and s.video and (rebuild or not s.built_video.is_file()):
+        build_video(s)
+    return s.built_binary
+
+
+def build_video(s: Settings) -> None:
+    """libtfvideo beside the binary: FFmpeg 9.0.2 built once into tf_cache (the checkout's script), then zig build video."""
+    src = ensure_source(s)
+    prefix = s.tf_cache / "ffmpeg-9.0.2"
+    if not (prefix / "lib" / "libavcodec.a").is_file():
+        log(f"Building FFmpeg 9.0.2 (static, decoders only) into {prefix}; several minutes")
+        _run(["bash", str(src / "tools" / "zig" / "build_ffmpeg.sh"), str(prefix), str(s.tf_cache / "ffmpeg-src")],
+             cwd=src, timeout=7200)
+    log(f"Building libtfvideo (zig build video -Dffmpeg={prefix})")
+    _run([str(s.zig), "build", "video", f"-Dffmpeg={prefix}", f"-Dcpu={s.zig_cpu}"], cwd=src, timeout=3600)
+    if not s.built_video.is_file():
+        raise RuntimeError(f"the build left no {s.built_video}")
+
+
+def build(s: Settings) -> None:
+    """tensorfold-native at the pinned sha."""
     src = ensure_source(s)
     if not s.zig.is_file():
         raise RuntimeError(f"zig={s.zig} is not a file: install Zig {(src / '.zig-version').read_text().strip()} there "
@@ -58,7 +79,6 @@ def ensure_binary(s: Settings, rebuild: bool = False) -> Path:
     if not s.built_binary.is_file():
         raise RuntimeError(f"the build left no {s.built_binary}")
     log(f"Built {s.built_binary}: {_run([str(s.built_binary), '--version']).strip()}")
-    return s.built_binary
 
 
 def info(s: Settings, model_dir: Path) -> str:

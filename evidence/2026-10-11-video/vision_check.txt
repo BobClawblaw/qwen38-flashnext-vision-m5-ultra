@@ -1,0 +1,9 @@
+ok   shapes and sides       prompt    183  drafted==plain True    143 tok/s  first token  0.20 s  ' on the left there is a red circle and on the right there is a blue square.'
+ok   top and bottom         prompt    145  drafted==plain True    190 tok/s  first token  0.18 s  ' The shape on top is a green triangle.'
+ok   counting               prompt     98  drafted==plain True     66 tok/s  first token  0.15 s  '5'
+ok   image then 9k words    prompt  10299  drafted==plain True    163 tok/s  first token  2.64 s  '1) A red circle and a blue square.\n2) Biscuit.'
+ok   9k words then image    prompt  10266  drafted==plain True    105 tok/s  first token  2.50 s  '1) Triangle\n2) Biscuit'
+ok   two images             prompt    256  drafted==plain True    170 tok/s  first token  0.28 s  'The first image displays a red circle and a blue square side-by-side on a light background'
+ok   follow-up turn         prompt    178  drafted==plain True    125 tok/s  first token  0.19 s  'Below it is a yellow circle.'
+ok   text unchanged by the image requests before it
+PASS

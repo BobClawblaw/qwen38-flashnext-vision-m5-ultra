@@ -20,11 +20,11 @@ MAX_CONTEXT = 4 * TRAINED_CONTEXT     # past it the engine rotates with static Y
 # takes unambiguous prefixes, so any prefix of these is refused too
 OWNED_FLAGS = ("--host", "--port", "--name", "--context", "--max-tokens", "--thinking", "--no-thinking", "--no-drafts",
                "--no-update-check", "--temperature", "--prompt-cache-gib", "--keep-warm", "--learn", "--learn-dir", "--learn-gib", "--compact-at",
-               "--vision", "--vision-image-tokens", "--vision-max-images", "--parallel",
+               "--vision", "--vision-image-tokens", "--vision-max-images", "--vision-video-tokens", "--parallel",
                "--dashboard", "--api-key")
 # flags the native server has for other families or platforms; refused so a setting is not silently ignored
 UNUSED_FLAGS = ("--speed-up", "--backend", "--device", "--segments", "--kv-dtype", "--tp", "--rank",
-                "--master", "--master-port", "--vision-urls", "--vision-video-tokens", "--tool-system")
+                "--master", "--master-port", "--vision-urls", "--tool-system")
 
 
 class ConfigError(ValueError):
@@ -66,6 +66,8 @@ class Settings:
     vision: bool
     vision_image_tokens: int
     vision_max_images: int
+    video: bool
+    vision_video_tokens: int
     parallel: int
     load_limit_gb: float
     compact_at: str
@@ -95,6 +97,11 @@ class Settings:
     @property
     def built_binary(self) -> Path:
         return self.build_dir / "zig-out" / "native" / "bin" / "tensorfold-native"
+
+    @property
+    def built_video(self) -> Path:
+        """libtfvideo, which the server loads beside its binary (../lib) on the first video request."""
+        return self.build_dir / "zig-out" / "native" / "lib" / "libtfvideo.dylib"
 
     @property
     def run_binary(self) -> Path:
@@ -144,7 +151,8 @@ class Settings:
             if self.learn_gib:
                 args += ["--learn-gib", str(self.learn_gib)]
         if self.vision:
-            args += ["--vision", "--vision-image-tokens", str(self.vision_image_tokens), "--vision-max-images", str(self.vision_max_images)]
+            args += ["--vision", "--vision-image-tokens", str(self.vision_image_tokens), "--vision-max-images", str(self.vision_max_images),
+                     "--vision-video-tokens", str(self.vision_video_tokens)]
         if self.parallel > 1:
             args += ["--parallel", str(self.parallel)]
         if self.compact_at:
@@ -170,7 +178,7 @@ class Settings:
     def summary(self) -> str:
         bin_ = self.binary or f"build@{self.tensorfold_sha[:8]}"
         return (f"profile={self.profile} ctx={self.context} drafts={int(self.drafts)} thinking={int(self.thinking)} "
-                f"temp={self.temperature or 'checkpoint'} prompt_cache={self.prompt_cache_gib} learn={int(self.learn)} vision={int(self.vision)} parallel={self.parallel} "
+                f"temp={self.temperature or 'checkpoint'} prompt_cache={self.prompt_cache_gib} learn={int(self.learn)} vision={int(self.vision)} video={int(self.vision and self.video)} parallel={self.parallel} "
                 f"engine={bin_} model={self.repo}@{self.revision[:8]} url={self.url}")
 
 
@@ -255,6 +263,7 @@ def validate(s: Settings) -> None:
     for name, lo, hi in (("port", 1, 65535), ("max_tokens", 1, 1 << 24), ("prompt_cache_gib", -1, 1024),
                          ("keep_warm", 0, 86400), ("learn_gib", 0, 1024), ("memory_margin_gib", 0, 256),
                          ("vision_image_tokens", 64, 16384), ("vision_max_images", 1, 16), ("parallel", 1, 8),
+                         ("vision_video_tokens", 64, 262144),
                          ("load_limit_gb", 0, 256)):
         v = getattr(s, name)
         if not lo <= v <= hi:
@@ -294,7 +303,7 @@ def validate(s: Settings) -> None:
         for unused in UNUSED_FLAGS:
             if unused.startswith(flag):
                 raise ConfigError(f"extra_args sets {word} ({unused}): not a Flash Next-on-Metal flag in this engine "
-                                  "(one Mac; image URLs, video, kv-dtype, tool-system and grammars are not served for Flash Next here)")
+                                  "(one Mac; image URLs, kv-dtype, tool-system and grammars are not served for Flash Next here)")
     for kv in s.extra_env_pairs:
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", kv):
             raise ConfigError(f"extra_env entry {kv!r} is not KEY=VALUE")

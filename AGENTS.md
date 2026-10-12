@@ -1,7 +1,7 @@
 # Working on this recipe
 
 Serve `TensorFold/Qwen3.8-Flash-Next-MLX-6bit-MTP` with image input on one M5 Ultra with TensorFold's native Metal
-engine, built from the BobClawblaw/TensorFold `flashnext-vision-parallel` branch (vision, #606 streams, 1M). Everything
+engine, built from the BobClawblaw/TensorFold `flashnext-video` branch (vision, #606 streams, 1M, video). Everything
 in this tree is original to this project: no code copied from other recipes (the Spark and GLM recipes included), no
 harness dependencies, stdlib Python only.
 
@@ -13,7 +13,7 @@ harness dependencies, stdlib Python only.
   since 2026-10-09. Do not pin another precision; a mixed layout is upstream engine work.
 - **Greedy only.** The engine has no sampler for Flash Next and refuses a temperature. `temperature = "0"` keeps the
   server's own default greedy so requests without one are served; never clear it.
-- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-vision-parallel `68306275`) and built into a worktree under `tf_cache`; never build
+- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-video `fdbd0228`) and built into a worktree under `tf_cache`; never build
   in the user's checkout. To try a branch, build it elsewhere and point `binary` at it; re-pin only after the suite and
   the ruler rerun.
 - **The Spark recipe's suite and ruler are called, not copied.** `python3 -m mac suite` and `ruler` run them from a
@@ -31,9 +31,9 @@ harness dependencies, stdlib Python only.
   HumanEval needs Docker (Colima here), `--sandbox-image python:3.12-slim`, and `TMPDIR` under `$HOME` (Colima shares
   only home); dataset downloads need `SSL_CERT_FILE` from certifi on python.org's Python.
 
-- **Not served here:** video, image URLs, `--kv-dtype`, `--tool-system`, grammars, `--speed-up`; the guards refuse the flags.
-- **Vision:** `tools/vision_check.py` is the image gate (stdlib, draws its own images); run it after any engine or
-  setting change. Image prompts are never kept by the prompt cache (their multimodal frame depends on every image).
+- **Not served here:** image and video URLs, `--kv-dtype`, `--tool-system`, grammars, `--speed-up`; the guards refuse the flags.
+- **Vision:** `tools/vision_check.py` is the image gate (stdlib, draws its own images) and `tools/video_check.py` the
+  video gate (clips in `tools/clips`); run both after any engine or setting change. Image prompts are never kept by the prompt cache (their multimodal frame depends on every image).
   The tower's attention keeps fp32 scores in memory: a full-size photo takes ~1.5 s in it. A fused attention kernel
   is the obvious speed-up.
 - **On this Mac** the launchd unit serves it on :8888 to the LAN, no API key, superseding MTPLX: see HERMES.md. Don't

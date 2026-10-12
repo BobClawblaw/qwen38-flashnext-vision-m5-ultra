@@ -1,0 +1,57 @@
+{
+ "url": "http://127.0.0.1:8888",
+ "checks": [
+  {
+   "check": "yellow right, H.264",
+   "ok": true,
+   "prompt_tokens": 239,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "ttft": 0.616038125,
+   "seconds": 0.72,
+   "reply": "A yellow square moves from left to right across a colorful background."
+  },
+  {
+   "check": "yellow right, VP9",
+   "ok": true,
+   "prompt_tokens": 171,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "ttft": 0.18978375,
+   "seconds": 0.29,
+   "reply": "A yellow square moves from left to right across a colorful, diagonally striped background."
+  },
+  {
+   "check": "red left, bottom",
+   "ok": true,
+   "prompt_tokens": 395,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "ttft": 0.359689375,
+   "seconds": 0.46,
+   "reply": "A red square moves left along the bottom of the frame."
+  },
+  {
+   "check": "30 s 720p, in order",
+   "ok": true,
+   "prompt_tokens": 8206,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "ttft": 4.964780416,
+   "seconds": 5.33,
+   "reply": "A white square moves from the left side of the screen to the right against a green background. After reaching the right edge, it disappears and reappears as a blue square at the bottom center of the screen."
+  },
+  {
+   "check": "video and image",
+   "ok": true,
+   "prompt_tokens": 538,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "ttft": 0.448787375,
+   "seconds": 0.55,
+   "reply": "A red square moves across the blue background. The image contains a red circle and a blue square."
+  }
+ ],
+ "concurrent_equal": true,
+ "text_unchanged": true
+}

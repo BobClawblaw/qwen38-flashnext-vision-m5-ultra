@@ -10,8 +10,8 @@ served_name = "Qwen3.8-Flash-Next-MLX-6bit"
 same_as = ""
 
 [engine]
-tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-vision-parallel branch (not upstream yet)
-tensorfold_sha = "4cef40ebe60e04b22c0b967a348d8d41a6d7a42f"     # flashnext-vision-parallel: v1.0.7, vision, #606 streams, 1M
+tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-video branch (not upstream yet)
+tensorfold_sha = "fdbd0228ae17b5a069c2a0b9dba3ca65c13c598c"     # flashnext-video: v1.0.7, vision, #606 streams, 1M, video
 tensorfold_src = "~/github/TensorFold"   # a checkout holding the sha; `build` adds a worktree at it under tf_cache
 zig = "~/.local/zig/zig"                 # Zig 0.17.0 (.zig-version in the checkout)
 zig_cpu = "apple_m1"
@@ -43,6 +43,8 @@ learn_gib = 0                    # their budget; 0: the engine's default
 vision = true                    # image input (image_url parts: data URLs; PNG, JPEG and what ImageIO decodes)
 vision_image_tokens = 4096       # image tokens a request may hold in all (a 2000x1500 photo takes 2,914)
 vision_max_images = 4            # images a request may hold
+video = true                     # video input (video_url parts): builds libtfvideo over a static FFmpeg 9.0.2 once
+vision_video_tokens = 16384      # visual tokens a request's videos share (a 30 s 720p clip takes about 8,000)
 parallel = 4                     # streams at once (upstream PR #606's shared lane path); 1: the single-reply driver
 load_limit_gb = 240              # FLASHNEXT_LOAD_LIMIT_GB: four streams at 1M pass the engine's 70% share (~222 GiB in use)
 compact_at = ""                  # "" off | "auto" | a fraction, see TensorFold's README

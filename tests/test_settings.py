@@ -101,6 +101,12 @@ class Refusals(unittest.TestCase):
         self.refuse("passes itself", extra_args="--vision-max-images 8")
         self.refuse("not a Flash Next-on-Metal flag", extra_args="--vision-urls")
 
+    def test_video(self):
+        args = load().serve_args("/m")
+        self.assertEqual(args[args.index("--vision-video-tokens") + 1], "16384")
+        self.refuse("passes itself", extra_args="--vision-video-tokens 8")
+        self.refuse("outside", vision_video_tokens="32")
+
     def test_learn_dir_needs_learn(self):
         self.refuse("learn=false", learn_dir="~/learned")
 

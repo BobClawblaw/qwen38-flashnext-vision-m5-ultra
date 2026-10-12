@@ -1,0 +1,13 @@
+ok   h264-444.mp4: 4 frames, grid [2, 8, 12], 99 prompt ids equal; sees the yellow square going right: True; 'A yellow square moves from left to right across a colorful background.'
+ok   h264-709.mov: 4 frames, grid [2, 22, 40], 491 prompt ids equal; sees the yellow square going right: True; 'A yellow square moves from the left side of the screen to the right side.'
+ok   h264-full.mp4: 4 frames, grid [2, 8, 16], 115 prompt ids equal; sees the yellow square going right: True; 'A yellow square moves from left to right across the screen.'
+ok   h264-odd.mp4: 4 frames, grid [2, 12, 20], 171 prompt ids equal; sees the yellow square going right: True; 'A yellow square moves from the left side of the screen to the right side.'
+ok   h264.mp4: 6 frames, grid [3, 12, 20], 239 prompt ids equal; sees the yellow square going right: True; 'A yellow square moves from left to right across a colorful background.'
+ok   hevc.mp4: 4 frames, grid [2, 16, 20], 211 prompt ids equal; sees the yellow square going right: True; 'A yellow square moves from left to right across a colorful, diagonally striped background.'
+ok   hevc10.mov: 4 frames, grid [2, 16, 20], 211 prompt ids equal; sees the yellow square going right: True; 'A yellow square moves from left to right across the screen.'
+ok   long.mp4: 256 frames, grid [128, 4, 4], 1733 prompt ids equal; sees the yellow square going right: True; 'The yellow square moves from left to right across the screen.'
+ok   mpeg4.mp4: 4 frames, grid [2, 18, 22], 249 prompt ids equal; sees the yellow square going right: True; 'A yellow square moves to the right.'
+ok   short.mp4: 4 frames, grid [2, 8, 10], 91 prompt ids equal; sees the yellow square going right: True; 'A yellow square moves from left to right across a colorful gradient background.'
+ok   vp8.mkv: 4 frames, grid [2, 10, 16], 131 prompt ids equal; sees the yellow square going right: True; 'A yellow square moves from left to right across a colorful background.'
+ok   vp9.webm: 4 frames, grid [2, 12, 20], 171 prompt ids equal; sees the yellow square going right: True; 'A yellow square moves from left to right across a colorful, diagonally striped background.'
+PASS

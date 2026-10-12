@@ -1,0 +1,8 @@
+ok   yellow right, H.264    prompt    239  drafted==plain True  first token  0.62 s  'A yellow square moves from left to right across a colorful background.'
+ok   yellow right, VP9      prompt    171  drafted==plain True  first token  0.19 s  'A yellow square moves from left to right across a colorful, diagonally striped background.'
+ok   red left, bottom       prompt    395  drafted==plain True  first token  0.36 s  'A red square moves left along the bottom of the frame.'
+ok   30 s 720p, in order    prompt   8206  drafted==plain True  first token  4.96 s  'A white square moves from the left side of the screen to the right against a green background. After'
+ok   video and image        prompt    538  drafted==plain True  first token  0.45 s  'A red square moves across the blue background. The image contains a red circle and a blue square.'
+ok   a video and a text request at once each equal their replies alone
+ok   text unchanged by the video requests before it
+PASS
