@@ -21,14 +21,15 @@ class Defaults(unittest.TestCase):
         s = load()
         self.assertEqual(s.profile, "chat")
         self.assertTrue(s.drafts)
-        self.assertEqual(s.context, 1048576)
+        self.assertEqual(s.context, 262144)
         self.assertEqual(s.parallel, 4)
         args = s.serve_args("/m")
         self.assertEqual(args[:2], ["serve", "/m"])
         self.assertIn("--no-thinking", args)
         self.assertNotIn("--no-drafts", args)
         self.assertEqual(args[args.index("--temperature") + 1], "0")   # the engine decodes Flash Next greedily only
-        self.assertNotIn("--prompt-cache-gib", args)     # -1: the engine's default
+        self.assertEqual(args[args.index("--prompt-cache-gib") + 1], "24")
+        self.assertIn("--prompt-cache-over-cap", args)
         self.assertIn("--dashboard", args)
         self.assertIn("--no-update-check", args)
         self.assertEqual(args[args.index("--parallel") + 1], "4")
@@ -79,6 +80,17 @@ class Refusals(unittest.TestCase):
         with self.assertRaises(config.ConfigError) as cm:
             load(**env)
         self.assertIn(fragment, str(cm.exception))
+
+    def test_prompt_cache_over_cap(self):
+        self.assertNotIn("--prompt-cache-over-cap", load(prompt_cache_over_cap="0").serve_args("/m"))
+        self.assertNotIn("--prompt-cache-gib", load(prompt_cache_gib="-1", prompt_cache_over_cap="0").serve_args("/m"))
+        self.assertNotIn("--prompt-cache-over-cap", load(prompt_cache_gib="0").serve_args("/m"))   # off: nothing to pass
+        self.refuse("passes itself", extra_args="--prompt-cache-over-cap")
+
+    def test_1m_needs_the_cache_off(self):
+        self.refuse("leaves no memory", context="1048576")
+        args = load(context="1048576", prompt_cache_gib="0").serve_args("/m")
+        self.assertEqual(args[args.index("--context") + 1], "1048576")
 
     def test_context_bounds(self):
         self.refuse("YaRN x4", context="2097152")

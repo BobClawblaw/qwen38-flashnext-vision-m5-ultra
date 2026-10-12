@@ -28,14 +28,15 @@ request_log = ""                         # a file for TENSORFOLD_REQUEST_LOG; em
 
 [serve]
 profile = "chat"                 # chat (MTP drafts, the default) | reference (--no-drafts, the exactness reference)
-# the window: the checkpoint's 262,144. The Metal engine serves the checkpoint's plain rotary only (config.zig refuses
-# any other rope type), so there is no 1M YaRN profile here, unlike the Spark recipe
-context = 1048576                # past the trained 262,144 with static YaRN x4 (every prompt); slot 0 holds it, the others 262,144
+# the window: the checkpoint's trained 262,144, plain rotary. Up to 1,048,576 works (static YaRN x4 on every prompt, slot 0
+# alone holds it) but leaves no memory for the prompt cache and costs short prompts a little: see the README
+context = 262144
 drafts = true
 thinking = false
 max_tokens = 32768
 temperature = "0"                # the engine decodes Flash Next greedily only; a sampled default would refuse every request without one
-prompt_cache_gib = -1            # kept prompt states: -1 the engine's default (what 70% of RAM leaves, less 2 GiB), 0 off
+prompt_cache_gib = 24            # kept prompt states, so an agent's next call reads only its new turns; -1 the engine's default
+prompt_cache_over_cap = true     # --prompt-cache-over-cap with a size above 0: it passes the 70% share as the slots do (~219 GiB)
 keep_warm = 900                  # seconds the GPU stays active after a request
 learn = false                    # shared prefixes (a system prompt and its tools) kept on disk across restarts (--learn, v1.0.7)
 learn_dir = ""                   # where learned states live; empty: the engine's default
@@ -46,7 +47,7 @@ vision_max_images = 4            # images a request may hold
 video = true                     # video input (video_url parts): builds libtfvideo over a static FFmpeg 9.0.2 once
 vision_video_tokens = 16384      # visual tokens a request's videos share (a 30 s 720p clip takes about 8,000)
 parallel = 4                     # streams at once (upstream PR #606's shared lane path); 1: the single-reply driver
-load_limit_gb = 240              # FLASHNEXT_LOAD_LIMIT_GB: four streams at 1M pass the engine's 70% share (~222 GiB in use)
+load_limit_gb = 240              # FLASHNEXT_LOAD_LIMIT_GB: four streams pass the engine's 70% share (~195 GiB before the cache)
 compact_at = ""                  # "" off | "auto" | a fraction, see TensorFold's README
 dashboard = true                 # /dashboard and /stats
 api_key = ""

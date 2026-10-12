@@ -1,9 +1,11 @@
-# Qwen3.8-Flash-Next with image and video input, four streams and a 1M window on one M5 Ultra
+# Qwen3.8-Flash-Next with image and video input and four streams on one M5 Ultra
 
 Serve [TensorFold/Qwen3.8-Flash-Next-MLX-6bit-MTP](https://huggingface.co/TensorFold/Qwen3.8-Flash-Next-MLX-6bit-MTP)
 on one Apple M5 Ultra (256 GB) through [TensorFold](https://github.com/ashhart/TensorFold)'s native Metal engine:
-text, images and video in one OpenAI-compatible API (`image_url` and `video_url` parts), four replies at once sharing each forward, a
-1,048,576-token window, MTP drafts, a launchd unit.
+text, images and video in one OpenAI-compatible API (`image_url` and `video_url` parts), four replies at once sharing
+each forward, the trained 262,144-token window with a 24 GiB prompt cache (an agent's next call reads only its new
+turns), MTP drafts, a launchd unit. A 1,048,576-token window is a setting away, with costs listed
+[below](#the-1m-window-and-its-problems).
 
 Upstream TensorFold v1.0.7 serves Flash Next on Metal one reply at a time, up to 262,144 tokens, text only. This recipe
 builds the [`flashnext-video`](https://github.com/BobClawblaw/TensorFold/tree/flashnext-video)
@@ -16,14 +18,14 @@ branch, v1.0.7 plus five things:
   decode, drafts and shared rounds are untouched, and text replies are byte-identical to v1.0.7's.
 - **Four streams** from upstream [#606](https://github.com/ashhart/TensorFold/pull/606) (cwschroeder's shared lane path),
   with the load limit offered there (`FLASHNEXT_LOAD_LIMIT_GB`) and images in each stream's prefill.
-- **A 1M window**: static YaRN x4 past the trained 262,144 (transformers' table, unit-tested) in every rotary kernel,
+- **An optional 1M window** (not the default): static YaRN x4 past the trained 262,144 (transformers' table, unit-tested) in every rotary kernel,
   the engine's cap a runtime value (a 262k server allocates as before), slot 0 holding the full window and slots 1-3
   the trained one, long requests waiting for slot 0, and prompt chunks shortened past 262k so the indexer's scores fit.
 - **Prompt passes that don't stall the others**: a stream's prompt is read in steps between the other streams' rounds
   (the lane core's `prefill_step`), 1,024 rows a step while others decode and only once their rounds have had as long
   as the step before, so a long read and the replies around it share the GPU half and half; alone it reads at full
   speed, and a short prompt's single step never waits.
-  With `context = 262144` the kernels take the plain rotary, bit-identical to v1.0.7.
+  At the default `context = 262144` the kernels take the plain rotary, bit-identical to v1.0.7.
 - **Video input** (`zig/src/families/flashnext/video.zig`, upstream [#618](https://github.com/ashhart/TensorFold/pull/618)'s
   libtfvideo over FFmpeg 9.0.2): frames sampled at 2 a second (4 to 256), sized over the clip's pixel budget and
   paired as transformers' Qwen3-VL video processor does, each pair an image to the tower, written as
@@ -34,11 +36,24 @@ Nothing to convert: the 6-bit checkpoint carries the tower (`vision_tower.*`, bf
 
 ## Measured on this Mac
 
-Mac Studio M5 Ultra, 256 GB, engine `68306275` (`4cef40eb` for the stall check, `fdbd0228` for video), checkpoint `45032a19`, greedy, thinking off, the defaults (four
-streams, 1,048,576 tokens, YaRN x4), served by the launchd unit on 2026-10-11
-([`evidence/2026-10-11-1m-parallel4/`](evidence/2026-10-11-1m-parallel4/)).
+Mac Studio M5 Ultra, 256 GB, checkpoint `45032a19`, greedy, thinking off, served by the launchd unit.
 
-Decode (`bench/ruler.py`, 256-token replies, median of 3, [`ruler.json`](evidence/2026-10-11-1m-parallel4/ruler.json)):
+**The defaults** (four streams, 262,144 tokens, plain rotary, 24 GiB prompt cache; engine `ddc17bb6`, 2026-10-12,
+[`evidence/2026-10-12-262k-cache/`](evidence/2026-10-12-262k-cache/)):
+
+| Users | prose | code | structured | list | first token |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 129.3 | 176.6 | 149.8 | 177.4 | 0.19-0.20 s |
+| 4, each | 52.6 | 78.3 | 60.7 | 78.4 | 0.39-0.41 s |
+| 4, aggregate | 209.5 | 309.6 | 245.9 | 321.5 | |
+
+Decode is `bench/ruler.py` (256-token replies, median of 3). A 255,674-token prompt read at 3,635 tok/s (70 s) and
+108,194 at 3,870 tok/s, a needle found in each. An agent loop over a 42k-token conversation: the first call 10-11 s,
+each later call 0.2 s to the first token, and 1.3 s when a turn adds a 4,000-token tool result (the cache resumes at
+the previous call's end). Image gate 7/7, video gate 7/7. About 219 GiB in use with the cache full.
+
+**The 1M window** (`context = 1048576`, YaRN x4, no prompt cache; engine `68306275`, 2026-10-11,
+[`evidence/2026-10-11-1m-parallel4/`](evidence/2026-10-11-1m-parallel4/)):
 
 | Users | prose | code | structured | list | first token |
 |---:|---:|---:|---:|---:|---:|
@@ -69,7 +84,7 @@ A long prompt beside decoding streams (`tools/stall_check.py`, two streams writi
 streaming, a chunk every 79-90 ms on average (the longest gap 1.6 s), their replies byte-equal to their solo runs; the
 long prompt read at 2,693 tok/s (3,643 alone) and found its needle. Before this, the streams froze for the whole pass.
 
-Quality with static YaRN x4 on every prompt, the Spark recipe's suite, thinking off
+Quality, the Spark recipe's suite, thinking off, at 1M with static YaRN x4 on every prompt
 ([`suite/`](evidence/2026-10-11-1m-parallel4/suite/report.md)), beside the same checks on the trained window's plain
 rotary (the text-only sibling, [qwen38-flashnext-mlx6bit-m5-ultra](https://github.com/BobClawblaw/qwen38-flashnext-mlx6bit-m5-ultra)):
 
@@ -88,18 +103,34 @@ Video ([`video_check.txt`](evidence/2026-10-11-video/video_check.txt), `tools/vi
 square going left along the bottom, a 30-second 720p clip's two scenes in order (8,206 prompt tokens, first token
 5.0 s), a video beside an image, and a video and a text request at once each equal to their replies alone: 7/7.
 
-For an agent loop on this Mac, `context = 262144` with a 24 GiB prompt cache
-([`evidence/2026-10-12-262k-cache/`](evidence/2026-10-12-262k-cache/), see the changelog): four streams, no YaRN,
-decode 129-177 tok/s one user and 210-322 at four, a 255,674-token needle at 3,635 tok/s, each agent call reading
-only its new turns. The 1M defaults leave no memory for the prompt cache.
+## The 1M window and its problems
 
-Static YaRN costs short prompts a little, as Qwen's card says it may. `context = 262144` in `local.toml` serves four
-streams on the plain rotary instead (about 205 GiB).
+`context = 1048576` in `local.toml` (and `prompt_cache_gib = 0`, see the first point) serves up to 1,048,576 tokens.
+It works, with a needle found at 982k, but it was the default only from 2026-10-11 to 2026-10-12 and these are why it
+is not:
+
+- **No prompt cache.** Slot 0's 1M caches take the memory the prompt cache would use: four streams at 1M hold about
+  222 GiB, and the default 24 GiB cache on top would reach about 246 GiB of 256 (the engine's override does not stop
+  it, so `mac validate` refuses a cache with four streams past 262,144). With no cache every request rereads its
+  whole prompt, so an agent loop pays for its full history on every call: Hermes's calls took about 20 s each at 59k
+  tokens, against 0.2-1.3 s with the cache.
+- **YaRN on every prompt.** The engine's rotary is static YaRN x4 for every request, short ones too, and short-prompt
+  quality dips: tool calls 56/60 against 59/60, IFEval 132/124 against 134/128, GSM8K 241 against 242 (the table above).
+- **One long stream.** Only slot 0 holds more than 262,144 tokens; a second long request waits for it, and the other
+  three streams stay at 262,144.
+- **Slow long reads.** A 982k prompt takes 395 s to its first token (2,488 tok/s), and the read shares the GPU with
+  every running reply while it lasts.
+- **One unexplained failure.** A 553k prompt once ended in a GPU timeout while other jobs held memory; reruns passed.
+- **Image blocks past 2,048 tokens** are scored by the sparse indexer at slot positions (selection only; at any
+  window).
+
+Without the cache's 24 GiB the 262k default needs about 195 GiB; with `parallel = 1` about 176 GiB.
 
 ## Requirements
 
-- One Apple Silicon Mac with 256 GB: the defaults hold about 222 GiB once the caches fill (`load_limit_gb = 240` lets
-  them past the engine's 70% share). Smaller Macs: `context = 262144` (~205 GiB) or `parallel = 1` with it (~176 GiB).
+- One Apple Silicon Mac with 256 GB: the defaults hold about 219 GiB once the prompt cache fills (`load_limit_gb = 240`
+  and `prompt_cache_over_cap` let them past the engine's 70% share). Smaller Macs: `prompt_cache_gib = 0` (~195 GiB),
+  and `parallel = 1` with it (~176 GiB).
 - macOS with Xcode and its Metal toolchain, Zig 0.17.0, Python 3.11+ (stdlib only), the `hf` CLI, and for video
   `curl` and `make` (FFmpeg's source is fetched and checked by SHA-256). Disk: 147 GiB.
 
@@ -143,7 +174,9 @@ As the text-only sibling's, plus:
 | Setting | Default | Notes |
 |---|---|---|
 | `parallel` | 4 | replies at once (shared lane path); 1: the single-reply driver |
-| `context` | 1048576 | past 262,144 static YaRN x4 for every prompt; slot 0 holds it, the other slots 262,144 |
+| `context` | 262144 | the trained window; up to 1048576 with static YaRN x4 for every prompt (see the 1M section) |
+| `prompt_cache_gib` | 24 | kept prompt states; 0 off, -1 what 70% of RAM leaves (nothing with four streams) |
+| `prompt_cache_over_cap` | true | `--prompt-cache-over-cap`: the cache may pass the 70% share; without it 24 is refused |
 | `load_limit_gb` | 240 | `FLASHNEXT_LOAD_LIMIT_GB`: how far the slots may take the server past 70% of RAM |
 | `vision` | true | image input; false serves text only, without the tower |
 | `vision_image_tokens`, `vision_max_images` | 4096, 4 | a request's image tokens in all, and images |
@@ -155,12 +188,10 @@ As the text-only sibling's, plus:
 ## Not supported
 
 - Greedy only. No image or video URLs (data URLs only), no grammars, no audio.
-- One stream at a time past 262,144 tokens (slot 0); a second long request waits for it.
+- Past 262,144 tokens only with `context = 1048576`, one stream at a time (see the 1M section).
 - Image prompts are read whole and never kept by the prompt cache; `--learn` needs `parallel = 1`.
 - Past 2,048 tokens the sparse indexer scores blocks before the last image's end at their slot positions, not their
   multimodal ones (selection only; the long-context image checks pass with it).
-- Once, early in testing, a 553k prompt failed with a GPU timeout while other jobs held memory; four reruns of long
-  prompts with and without concurrent requests passed, and the server stayed up (that request alone errored).
 
 ## License
 

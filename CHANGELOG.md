@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-12 (defaults)
+
+- The defaults are now `context = 262144` (the trained window, plain rotary) with a 24 GiB prompt cache past the 70%
+  share (`prompt_cache_gib = 24`, new setting `prompt_cache_over_cap = true`), four streams kept: ~219 GiB in all.
+  The 1M window stays a setting (`context = 1048576`, `prompt_cache_gib = 0`; validate refuses it with the cache on).
+  Why, in the README's new "The 1M window and its problems": no memory left for the prompt cache (every agent call
+  rereads its history), YaRN on every prompt, one long stream at a time, minutes-long reads.
+
 ## 2026-10-12 (this Mac's settings)
 
 - This Mac serves `context = 262144` (no YaRN) with four streams and a 24 GiB prompt cache past the 70% share

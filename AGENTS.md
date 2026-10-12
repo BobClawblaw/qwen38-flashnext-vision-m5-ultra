@@ -1,7 +1,7 @@
 # Working on this recipe
 
 Serve `TensorFold/Qwen3.8-Flash-Next-MLX-6bit-MTP` with image input on one M5 Ultra with TensorFold's native Metal
-engine, built from the BobClawblaw/TensorFold `flashnext-video` branch (vision, #606 streams, 1M, video). Everything
+engine, built from the BobClawblaw/TensorFold `flashnext-video` branch (vision, #606 streams, video, an optional 1M window). Everything
 in this tree is original to this project: no code copied from other recipes (the Spark and GLM recipes included), no
 harness dependencies, stdlib Python only.
 
@@ -38,8 +38,10 @@ harness dependencies, stdlib Python only.
   is the obvious speed-up.
 - **On this Mac** the launchd unit serves it on :8888 to the LAN, no API key, superseding MTPLX: see HERMES.md. Don't
   `mac up`/`down` while the unit is loaded.
-- **Four streams and 1M:** `parallel = 4` uses upstream #606's shared lane path (not merged upstream); `context` past
-  262,144 turns on static YaRN x4 for every prompt (short-prompt scores dip slightly) and gives slot 0 the full window.
-  `load_limit_gb` passes the engine's 70% share; the defaults hold ~222 GiB. Never run anything large beside it.
+- **Four streams, 262k and the prompt cache:** `parallel = 4` uses upstream #606's shared lane path (not merged
+  upstream). The default window is the trained 262,144 with a 24 GiB prompt cache past the 70% share
+  (`prompt_cache_over_cap`); `load_limit_gb` lets the slots pass it too; ~219 GiB in all. `context` up to 1048576 works
+  (static YaRN x4 on every prompt, slot 0 alone long) but only with `prompt_cache_gib = 0` (validate refuses otherwise),
+  and then agent loops reread their whole history: see the README's 1M section. Never run anything large beside it.
 - **Prompt passes step between rounds** (backend.zig prefillStep, fair share with decoding streams);
   `tools/stall_check.py 280000` checks it. FZ_BATCH_LOG=1 times each chunk.

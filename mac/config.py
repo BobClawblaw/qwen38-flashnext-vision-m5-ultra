@@ -19,7 +19,7 @@ MAX_CONTEXT = 4 * TRAINED_CONTEXT     # past it the engine rotates with static Y
 # flags `serve_args` builds itself; EXTRA_ARGS may not set them (the parser keeps the last value); TensorFold's parser
 # takes unambiguous prefixes, so any prefix of these is refused too
 OWNED_FLAGS = ("--host", "--port", "--name", "--context", "--max-tokens", "--thinking", "--no-thinking", "--no-drafts",
-               "--no-update-check", "--temperature", "--prompt-cache-gib", "--keep-warm", "--learn", "--learn-dir", "--learn-gib", "--compact-at",
+               "--no-update-check", "--temperature", "--prompt-cache-gib", "--prompt-cache-over-cap", "--keep-warm", "--learn", "--learn-dir", "--learn-gib", "--compact-at",
                "--vision", "--vision-image-tokens", "--vision-max-images", "--vision-video-tokens", "--parallel",
                "--dashboard", "--api-key")
 # flags the native server has for other families or platforms; refused so a setting is not silently ignored
@@ -59,6 +59,7 @@ class Settings:
     max_tokens: int
     temperature: str
     prompt_cache_gib: int
+    prompt_cache_over_cap: bool
     keep_warm: int
     learn: bool
     learn_dir: str
@@ -143,6 +144,8 @@ class Settings:
             args += ["--temperature", self.temperature]
         if self.prompt_cache_gib >= 0:
             args += ["--prompt-cache-gib", str(self.prompt_cache_gib)]
+            if self.prompt_cache_over_cap and self.prompt_cache_gib > 0:
+                args.append("--prompt-cache-over-cap")
         args += ["--keep-warm", str(self.keep_warm)]
         if self.learn:
             args.append("--learn")
@@ -284,6 +287,10 @@ def validate(s: Settings) -> None:
         raise ConfigError(f"temperature={s.temperature!r} must be a decimal such as 0 or 0.7, or empty for the checkpoint's")
     if s.compact_at and s.compact_at != "auto" and not re.fullmatch(r"0?\.[0-9]+|1(\.0+)?", s.compact_at):
         raise ConfigError(f"compact_at={s.compact_at!r} must be empty, auto or a fraction in (0, 1]")
+    if s.context > TRAINED_CONTEXT and s.parallel > 1 and s.prompt_cache_gib > 0 and s.prompt_cache_over_cap:
+        raise ConfigError(f"context={s.context} with parallel={s.parallel} leaves no memory for prompt_cache_gib="
+                          f"{s.prompt_cache_gib}: slot 0's window and the cache would reach ~246 GiB of 256; set "
+                          "prompt_cache_gib = 0 with the 1M window (see the README's 1M section)")
     if s.parallel > 1 and s.learn:
         raise ConfigError("learn=true needs parallel=1: the shared sessions keep no learned states yet")
     if s.learn_dir and not s.learn:
