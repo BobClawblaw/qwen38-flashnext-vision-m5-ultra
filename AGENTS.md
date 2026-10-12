@@ -13,7 +13,7 @@ harness dependencies, stdlib Python only.
   since 2026-10-09. Do not pin another precision; a mixed layout is upstream engine work.
 - **Sampling.** Shared sessions sample a request's temperature on the host (families/flashnext/sample.zig, the lane
   core's keyed sampler); `temperature = "0"` keeps requests without one greedy. `parallel = 1` samples too (rounds one at a time).
-- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-lane-parity `431b7643`: sethforprivacy's `add3da3` on our flashnext-video, plus the top_k 0 sampler, run with `FLASHNEXT_RESIDENCY_SESSIONS=0`) and built into a worktree under `tf_cache`; never build
+- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-lane-parity `c507c94f`: sethforprivacy's `add3da3` on our flashnext-video, plus the top_k 0 sampler, run with `FLASHNEXT_RESIDENCY_SESSIONS=0`) and built into a worktree under `tf_cache`; never build
   in the user's checkout. To try a branch, build it elsewhere and point `binary` at it; re-pin only after the suite and
   the ruler rerun.
 - **The Spark recipe's suite and ruler are called, not copied.** `python3 -m mac suite` and `ruler` run them from a

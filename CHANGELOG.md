@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-12 (top_k 0 endpoint)
+
+- Engine `c507c94f`: the wide top-k draw keeps a uniform that rounds to exactly 1.0 (+inf noise) as the reference
+  does; the early stop could pass it over (found in review on cwschroeder/TensorFold#7). Same five top_k 0 shas.
+
 ## 2026-10-12 (weights pinned again)
 
 - Engine `431b7643` with `FLASHNEXT_RESIDENCY_SESSIONS=0` (`extra_env`, replacing `FLASHNEXT_NO_RESIDENCY=1`): the
