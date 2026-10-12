@@ -8,8 +8,8 @@ turns), MTP drafts, a launchd unit. A 1,048,576-token window is a setting away, 
 [below](#the-1m-window-and-its-problems).
 
 Upstream TensorFold v1.0.7 serves Flash Next on Metal one reply at a time, up to 262,144 tokens, text only. This recipe
-builds the [`flashnext-video`](https://github.com/BobClawblaw/TensorFold/tree/flashnext-video)
-branch, v1.0.7 plus five things:
+builds the [`flashnext-sampling`](https://github.com/BobClawblaw/TensorFold/tree/flashnext-sampling)
+branch, v1.0.7 plus six things:
 
 - **Image input on Metal** (`zig/src/families/flashnext/vision.zig`, `image.zig`, `vis_prompt.zig`): transformers'
   `Qwen4ExpVisionModel` in bf16 on the GPU (within bf16 noise of it on eight images), the processor's preparation
@@ -32,6 +32,11 @@ branch, v1.0.7 plus five things:
   `<X.Y seconds>` then its rows. The server's `/tokenize` equals transformers' `input_ids` on 12 clips across codecs
   and containers ([`transformers_prompt_ids.txt`](evidence/2026-10-11-video/transformers_prompt_ids.txt)).
 
+- **Sampling** (`zig/src/families/flashnext/sample.zig`): a request with a temperature draws each token on the host
+  from the head's logits with the server's keyed sampler (top-k, top-p, min-p, a `seed` or one derived from the
+  prompt). MTP drafts still help: a draft is kept when it equals the drawn token, so a sampled reply is the same
+  drafted and undrafted, and alone or beside other streams. Greedy replies are unchanged.
+
 Nothing to convert: the 6-bit checkpoint carries the tower (`vision_tower.*`, bf16, 1.7 GiB loaded with scratch).
 
 ## Measured on this Mac
@@ -47,7 +52,10 @@ Mac Studio M5 Ultra, 256 GB, checkpoint `45032a19`, greedy, thinking off, served
 | 4, each | 52.6 | 78.3 | 60.7 | 78.4 | 0.39-0.41 s |
 | 4, aggregate | 209.5 | 309.6 | 245.9 | 321.5 | |
 
-Decode is `bench/ruler.py` (256-token replies, median of 3). A 255,674-token prompt read at 3,635 tok/s (70 s) and
+Decode is `bench/ruler.py` (256-token replies, median of 3). Sampling (temperature 0.7, engine `925ee05f`,
+[`sampling_check.txt`](evidence/2026-10-12-sampling/sampling_check.txt)): one stream 126-132 tok/s drafted against
+92-96 undrafted, four streams about 163 tok/s in all against 180 greedy (the drawn tokens match the greedy drafts
+less often); every sampled reply equal drafted and undrafted, and alone and beside three others. A 255,674-token prompt read at 3,635 tok/s (70 s) and
 108,194 at 3,870 tok/s, a needle found in each. An agent loop over a 42k-token conversation: the first call 10-11 s,
 each later call 0.2 s to the first token, and 1.3 s when a turn adds a 4,000-token tool result (the cache resumes at
 the previous call's end). Image gate 7/7, video gate 7/7. About 219 GiB in use with the cache full.
@@ -183,11 +191,14 @@ As the text-only sibling's, plus:
 | `video` | true | video input: `mac build` builds a static FFmpeg 9.0.2 and libtfvideo once (about a minute) |
 | `vision_video_tokens` | 16384 | the visual tokens a request's videos share (a 30 s 720p clip takes about 8,000) |
 | `port` | 8888 | |
-| `temperature` | `"0"` | the engine decodes Flash Next greedily only and refuses a request with a temperature |
+| `temperature` | `"0"` | the default for requests that send none: greedy; a request's own temperature samples |
 
 ## Not supported
 
-- Greedy only. No image or video URLs (data URLs only), no grammars, no audio.
+- No image or video URLs (data URLs only), no grammars, no audio. `parallel = 1` (the single-reply driver) decodes
+  greedily only and refuses a temperature.
+- Without a `seed`, a sampled request's seed comes from its prompt (TensorFold's design), so the same request gives
+  the same reply; send a `seed` for a different one.
 - Past 262,144 tokens only with `context = 1048576`, one stream at a time (see the 1M section).
 - Image prompts are read whole and never kept by the prompt cache; `--learn` needs `parallel = 1`.
 - Past 2,048 tokens the sparse indexer scores blocks before the last image's end at their slot positions, not their

@@ -10,8 +10,8 @@ served_name = "Qwen3.8-Flash-Next-MLX-6bit"
 same_as = ""
 
 [engine]
-tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-video branch (not upstream yet)
-tensorfold_sha = "ddc17bb6c016a41791dc0181ee20d062e6948f9a"     # flashnext-video: v1.0.7, vision, video, #606 streams, optional 1M
+tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-sampling branch (not upstream yet)
+tensorfold_sha = "925ee05f28165238139aa0b1c24b221a83063e9e"     # flashnext-sampling: v1.0.7, vision, video, #606 streams, sampling, optional 1M
 tensorfold_src = "~/github/TensorFold"   # a checkout holding the sha; `build` adds a worktree at it under tf_cache
 zig = "~/.local/zig/zig"                 # Zig 0.17.0 (.zig-version in the checkout)
 zig_cpu = "apple_m1"
@@ -34,7 +34,7 @@ context = 262144
 drafts = true
 thinking = false
 max_tokens = 32768
-temperature = "0"                # the engine decodes Flash Next greedily only; a sampled default would refuse every request without one
+temperature = "0"                # the server default: greedy unless a request sends a temperature (parallel = 1: greedy only)
 prompt_cache_gib = 24            # kept prompt states, so an agent's next call reads only its new turns; -1 the engine's default
 prompt_cache_over_cap = true     # --prompt-cache-over-cap with a size above 0: it passes the 70% share as the slots do (~219 GiB)
 keep_warm = 900                  # seconds the GPU stays active after a request

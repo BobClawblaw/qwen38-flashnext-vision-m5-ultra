@@ -22,9 +22,9 @@ For the agent that manages this Mac (Hermes) and for anyone else. Written 2026-1
 - Endpoint: `http://192.168.5.178:8888/v1` (LAN) or `http://127.0.0.1:8888/v1`. OpenAI-compatible chat, completions
   and Responses, plus Anthropic Messages. No API key: the LAN is trusted. Any model name is accepted; `/v1/models`
   lists `Qwen3.8-Flash-Next-MLX-6bit`.
-- Greedy only: leave `temperature` out or send 0. A request with another temperature gets a 400 saying it is not
-  supported; Hermes retries without it. Hermes's own `auxiliary.vision.temperature` is set to 0 in
-  `~/.hermes/config.yaml` so its image tool never sends one.
+- Sampling works: a request's `temperature` (with `top_p`, `top_k`, `min_p`, `seed`) is honored; a request without
+  one is greedy. Without a `seed` the same request gives the same reply (the seed comes from the prompt). Four sampled
+  streams run about 10% slower than greedy ones.
 - Images go in `image_url` parts as data URLs (base64 PNG or JPEG), up to 4 a request and 4,096 image tokens in all.
 - Videos go in `video_url` parts as data URLs (MP4, MOV, WebM or MKV), up to 2 a request, 16 MiB each, sharing 16,384
   visual tokens. Frames are sampled at 2 a second (at most 256), so a 30 s 720p clip is about 8,000 tokens and 5 s to
@@ -64,7 +64,7 @@ Boot the agent out first, then use `up`/`down` by hand if needed.
 
 - Settings live in `recipe.toml` (defaults) and `local.toml` (this Mac: host 0.0.0.0, port 8888). After a change,
   `launchctl kickstart -k gui/$(id -u)/com.tensorfold.qwen38-vision`.
-- The engine is pinned by commit (`tensorfold_sha`, BobClawblaw/TensorFold branch `flashnext-video`) and built into
+- The engine is pinned by commit (`tensorfold_sha`, BobClawblaw/TensorFold branch `flashnext-sampling`) and built into
   `~/.cache/tensorfold-qwen38-vision/engine/<sha>`. To upgrade: set the new sha, `python3 -m mac build`, kickstart,
   then run the image gate and `python3 -m mac ruler -- --runs 3` before trusting it.
 - Text only (no tower, 1.7 GiB less): set `vision = false` in `local.toml` and kickstart.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-12 (sampling)
+
+- Engine `925ee05f` (branch `flashnext-sampling`): requests with a temperature sample instead of getting a 400. Each
+  token is drawn on the host from the head's logits with the lane core's keyed sampler; MTP drafts stay on and a
+  sampled reply is the same drafted or not, alone or beside other streams; greedy replies are byte-identical to
+  `ddc17bb6`'s. One stream sampled at 0.7: 126-132 tok/s; four: ~163 tok/s in all (180 greedy). `parallel = 1` stays
+  greedy only. Image gate 7/7, video gate 7/7.
+
 ## 2026-10-12 (defaults)
 
 - The defaults are now `context = 262144` (the trained window, plain rotary) with a 24 GiB prompt cache past the 70%

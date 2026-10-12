@@ -1,7 +1,7 @@
 # Working on this recipe
 
 Serve `TensorFold/Qwen3.8-Flash-Next-MLX-6bit-MTP` with image input on one M5 Ultra with TensorFold's native Metal
-engine, built from the BobClawblaw/TensorFold `flashnext-video` branch (vision, #606 streams, video, an optional 1M window). Everything
+engine, built from the BobClawblaw/TensorFold `flashnext-sampling` branch (vision, #606 streams, video, sampling, an optional 1M window). Everything
 in this tree is original to this project: no code copied from other recipes (the Spark and GLM recipes included), no
 harness dependencies, stdlib Python only.
 
@@ -11,9 +11,9 @@ harness dependencies, stdlib Python only.
 - **6-bit is not a choice.** The native engine's Flash Next kernels take affine 6-bit, group 32, and nothing else
   (`zig/src/families/flashnext/affine.zig: checkFlashKernel`); 4-bit served gibberish on v1.0.2 and is refused at load
   since 2026-10-09. Do not pin another precision; a mixed layout is upstream engine work.
-- **Greedy only.** The engine has no sampler for Flash Next and refuses a temperature. `temperature = "0"` keeps the
-  server's own default greedy so requests without one are served; never clear it.
-- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-video `ddc17bb6`) and built into a worktree under `tf_cache`; never build
+- **Sampling.** Shared sessions sample a request's temperature on the host (families/flashnext/sample.zig, the lane
+  core's keyed sampler); `temperature = "0"` keeps requests without one greedy. `parallel = 1` is greedy only.
+- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-sampling `925ee05f`) and built into a worktree under `tf_cache`; never build
   in the user's checkout. To try a branch, build it elsewhere and point `binary` at it; re-pin only after the suite and
   the ruler rerun.
 - **The Spark recipe's suite and ruler are called, not copied.** `python3 -m mac suite` and `ruler` run them from a
