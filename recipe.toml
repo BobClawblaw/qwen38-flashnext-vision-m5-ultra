@@ -11,7 +11,7 @@ same_as = ""
 
 [engine]
 tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-lane-parity branch (not upstream yet)
-tensorfold_sha = "add3da3b036a8b668137ed6cb381b8615af38b6a"     # flashnext-lane-parity (sethforprivacy's add3da3 on our flashnext-video): lone driver, priced rounds
+tensorfold_sha = "eb219d2a61872efbbae407cd3efe11749c84fe03"     # flashnext-lane-parity: sethforprivacy's add3da3 (lone driver, priced rounds) + a fast top_k 0 sampler
 tensorfold_src = "~/github/TensorFold"   # a checkout holding the sha; `build` adds a worktree at it under tf_cache
 zig = "~/.local/zig/zig"                 # Zig 0.17.0 (.zig-version in the checkout)
 zig_cpu = "apple_m1"

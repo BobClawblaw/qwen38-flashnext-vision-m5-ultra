@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-12 (top_k 0)
+
+- Engine `eb219d2a` (`add3da3` + one commit, also on #719 and cwschroeder/TensorFold#7): an unlimited or wide top-k
+  draws by a counting sort of the bf16 keys instead of a full sort, the same tokens. Sampled with `top_k: 0`:
+  23-30 -> 91-119 tok/s; default sampling unchanged. Evidence: `evidence/2026-10-12-topk0/`.
+
 ## 2026-10-12 (lone driver and priced rounds)
 
 - Engine `add3da3` (sethforprivacy's commit on our `flashnext-video`, #719 and the #606 sampling; branch
