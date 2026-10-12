@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-12 (sampling at parallel = 1)
+
+- Engine `339b759a`: the single-reply driver (`parallel = 1`) samples too, with the same host sampler and positions,
+  so a seed gives the same reply at one stream or four (12 of 12 replies across three sampling settings). Its sampled
+  rounds run one at a time (115 tok/s against 135 greedy); greedy rounds keep the GPU pipeline and are unchanged.
+  Speed-up mode (two Macs) stays greedy only.
+
 ## 2026-10-12 (sampling)
 
 - Engine `925ee05f` (branch `flashnext-sampling`): requests with a temperature sample instead of getting a 400. Each

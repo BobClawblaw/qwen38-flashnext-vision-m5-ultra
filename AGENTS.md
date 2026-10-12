@@ -12,8 +12,8 @@ harness dependencies, stdlib Python only.
   (`zig/src/families/flashnext/affine.zig: checkFlashKernel`); 4-bit served gibberish on v1.0.2 and is refused at load
   since 2026-10-09. Do not pin another precision; a mixed layout is upstream engine work.
 - **Sampling.** Shared sessions sample a request's temperature on the host (families/flashnext/sample.zig, the lane
-  core's keyed sampler); `temperature = "0"` keeps requests without one greedy. `parallel = 1` is greedy only.
-- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-sampling `925ee05f`) and built into a worktree under `tf_cache`; never build
+  core's keyed sampler); `temperature = "0"` keeps requests without one greedy. `parallel = 1` samples too (rounds one at a time).
+- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-sampling `339b759a`) and built into a worktree under `tf_cache`; never build
   in the user's checkout. To try a branch, build it elsewhere and point `binary` at it; re-pin only after the suite and
   the ruler rerun.
 - **The Spark recipe's suite and ruler are called, not copied.** `python3 -m mac suite` and `ruler` run them from a

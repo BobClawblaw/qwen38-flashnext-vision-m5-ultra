@@ -55,7 +55,9 @@ Mac Studio M5 Ultra, 256 GB, checkpoint `45032a19`, greedy, thinking off, served
 Decode is `bench/ruler.py` (256-token replies, median of 3). Sampling (temperature 0.7, engine `925ee05f`,
 [`sampling_check.txt`](evidence/2026-10-12-sampling/sampling_check.txt)): one stream 126-132 tok/s drafted against
 92-96 undrafted, four streams about 163 tok/s in all against 180 greedy (the drawn tokens match the greedy drafts
-less often); every sampled reply equal drafted and undrafted, and alone and beside three others. A 255,674-token prompt read at 3,635 tok/s (70 s) and
+less often); every sampled reply equal drafted and undrafted, and alone and beside three others. With
+`parallel = 1` (engine `339b759a`) the same seed gives the same reply as with four streams (12 of 12); sampled rounds
+run one at a time there, 115 tok/s against 135 greedy. A 255,674-token prompt read at 3,635 tok/s (70 s) and
 108,194 at 3,870 tok/s, a needle found in each. An agent loop over a 42k-token conversation: the first call 10-11 s,
 each later call 0.2 s to the first token, and 1.3 s when a turn adds a 4,000-token tool result (the cache resumes at
 the previous call's end). Image gate 7/7, video gate 7/7. About 219 GiB in use with the cache full.
@@ -195,8 +197,7 @@ As the text-only sibling's, plus:
 
 ## Not supported
 
-- No image or video URLs (data URLs only), no grammars, no audio. `parallel = 1` (the single-reply driver) decodes
-  greedily only and refuses a temperature.
+- No image or video URLs (data URLs only), no grammars, no audio.
 - Without a `seed`, a sampled request's seed comes from its prompt (TensorFold's design), so the same request gives
   the same reply; send a `seed` for a different one.
 - Past 262,144 tokens only with `context = 1048576`, one stream at a time (see the 1M section).
