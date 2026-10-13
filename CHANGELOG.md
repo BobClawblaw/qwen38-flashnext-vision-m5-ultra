@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-12 (graceful restart)
+
+- `python3 -m mac restart` waits until /health shows no request running or waiting (two readings in a row), then
+  kickstarts the launchd unit (or downs and ups) and waits for ready. Every broken tool call Hermes logged against
+  8888 on 2026-10-12 came from a bare kickstart mid-stream. Live: a 1,844-token reply finished (finish=stop) before
+  the restart began. The tool-call suite on the current defaults: 59/60, three runs, thinking on and off.
+
 ## 2026-10-12 (two streams)
 
 - Defaults: `parallel = 2`, `prompt_cache_gib = 8`, `FLASHNEXT_NO_LONE=1`. Two 262k streams with every buffer held:

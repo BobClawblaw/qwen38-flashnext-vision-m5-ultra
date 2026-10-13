@@ -38,7 +38,8 @@ It runs as the launchd agent `com.tensorfold.qwen38-vision`, which restarts it i
 
 ```bash
 launchctl list | grep tensorfold                              # running: a pid in the first column
-launchctl kickstart -k gui/$(id -u)/com.tensorfold.qwen38-vision   # restart (about 40 s to ready)
+python3 -m mac restart      # (from the recipe folder) waits for requests in flight, then restarts (~40 s to ready)
+launchctl kickstart -k gui/$(id -u)/com.tensorfold.qwen38-vision   # immediate restart: cuts off replies and tool calls
 launchctl bootout gui/$(id -u)/com.tensorfold.qwen38-vision   # stop and unload (stays stopped until bootstrapped)
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.tensorfold.qwen38-vision.plist   # load and start again
 ```
@@ -56,19 +57,20 @@ Do not run `python3 -m mac up` or `down` while the launchd agent is loaded: laun
 Boot the agent out first, then use `up`/`down` by hand if needed.
 
 - Startup log: `~/.cache/tensorfold-qwen38-vision/launchd.log`. A start needs about 175 GiB free: close the other big
-  process (MTPLX, another model) and kickstart. `settings: ... holds about N GiB on the GPU` means `local.toml` asks for
+  process (MTPLX, another model) and `python3 -m mac restart`. `settings: ... holds about N GiB on the GPU` means `local.toml` asks for
   more than the GPU budget: lower `parallel`, `context` or `prompt_cache_gib`.
 - Healthy start: `image tower loaded (1.73 GiB ...)` then `serving Qwen3.8-Flash-Next-MLX-6bit at http://0.0.0.0:8888`.
 
 ## Changing it
 
 - Settings live in `recipe.toml` (defaults) and `local.toml` (this Mac: host 0.0.0.0, port 8888). After a change,
-  `launchctl kickstart -k gui/$(id -u)/com.tensorfold.qwen38-vision`.
+  `python3 -m mac restart`: it waits until no request is in flight, so no reply or tool call is cut off (a bare
+  kickstart did that several times on 2026-10-12; `--timeout` and `--force` bound the wait).
 - The engine is pinned by commit (`tensorfold_sha`, BobClawblaw/TensorFold branch `flashnext-sampling`) and built into
-  `~/.cache/tensorfold-qwen38-vision/engine/<sha>`. To upgrade: set the new sha, `python3 -m mac build`, kickstart,
+  `~/.cache/tensorfold-qwen38-vision/engine/<sha>`. To upgrade: set the new sha, `python3 -m mac build`, `python3 -m mac restart`,
   then run the image gate and `python3 -m mac ruler -- --runs 3` before trusting it.
-- Text only (no tower, 1.7 GiB less): set `vision = false` in `local.toml` and kickstart.
-- Smaller footprint: `prompt_cache_gib = 0` in `local.toml` and a kickstart (~161 GiB, but agent loops reread
+- Text only (no tower, 1.7 GiB less): set `vision = false` in `local.toml` and `python3 -m mac restart`.
+- Smaller footprint: `prompt_cache_gib = 0` in `local.toml` and `python3 -m mac restart` (~161 GiB, but agent loops reread
   everything). More at once: `parallel = 2` with `context = 131072` fits the budget; four full 262k streams do not.
 
 ## If something is wrong
@@ -77,6 +79,6 @@ Boot the agent out first, then use `up`/`down` by hand if needed.
 - Out of memory or the Mac stalls: something else large is loaded beside it. Never run another model of this size,
   or a heavy CPU job, while it serves.
 - Video requests answer "libtfvideo" errors: the library is missing beside the binary; run `python3 -m mac build`
-  and kickstart.
+  and `python3 -m mac restart`.
 - Replies to images or videos look wrong: run both gates. If they fail, roll `tensorfold_sha` back to `ddc17bb6`, the
   last build before sampling (`python3 -m mac build` rebuilds it; requests with a temperature then get a 400).

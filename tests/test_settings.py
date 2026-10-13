@@ -162,5 +162,24 @@ class GpuBudget(unittest.TestCase):
         self.assertIn("no budget reading", config.gpu_check(s, None, None))
 
 
+class GracefulRestart(unittest.TestCase):
+    def test_waits_for_two_quiet_readings_in_a_row(self):
+        from mac import serve
+        busy, idle = {"live": {"connections": 1, "waiting": 0}}, {"live": {"connections": 0, "waiting": 0}}
+        readings = iter([busy, idle, busy, idle, idle, busy])
+        seen = []
+        ok = serve.wait_idle(lambda: seen.append(1) or next(readings), sleep=lambda _: None, clock=lambda: 0.0)
+        self.assertTrue(ok)
+        self.assertEqual(len(seen), 5)   # the quiet reading after a busy one does not count until a second follows
+
+    def test_waiting_requests_count_and_a_timeout_reports_false(self):
+        from mac import serve
+        self.assertTrue(serve.busy({"live": {"connections": 0, "waiting": 2}}))
+        self.assertFalse(serve.busy(None))   # no answer: nothing to drain
+        t = iter(range(0, 1000, 100))
+        self.assertFalse(serve.wait_idle(lambda: {"live": {"connections": 1}}, limit=250, sleep=lambda _: None,
+                                         clock=lambda: float(next(t))))
+
+
 if __name__ == "__main__":
     unittest.main()

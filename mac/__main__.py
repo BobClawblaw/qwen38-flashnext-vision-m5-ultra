@@ -17,6 +17,9 @@ def main(argv: list[str] | None = None) -> int:
     up.add_argument("--no-download", action="store_true", help="refuse to download; serve what is cached")
     up.add_argument("--foreground", action="store_true", help="run the server as this process (launchd)")
     sub.add_parser("down", help="stop the server")
+    rs = sub.add_parser("restart", help="wait until no request is in flight, then restart (the launchd unit when loaded)")
+    rs.add_argument("--timeout", type=float, default=600, help="seconds to wait for the requests in flight")
+    rs.add_argument("--force", action="store_true", help="restart after --timeout even if requests are still running")
     sub.add_parser("status", help="pid, /health, /v1/models")
     lg = sub.add_parser("logs", help="the server log's tail")
     lg.add_argument("--tail", type=int, default=80)
@@ -46,6 +49,8 @@ def main(argv: list[str] | None = None) -> int:
             serve.up(s, download=not a.no_download, foreground=a.foreground)
         elif a.cmd == "down":
             serve.down(s)
+        elif a.cmd == "restart":
+            serve.restart(s, limit=a.timeout, force=a.force)
         elif a.cmd == "status":
             print(serve.status(s))
         elif a.cmd == "logs":

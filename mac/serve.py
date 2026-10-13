@@ -140,6 +140,52 @@ def down(s: Settings, grace: float = 30) -> None:
     log("stopped")
 
 
+LABEL = "com.tensorfold.qwen38-vision"   # the launchd unit (launchd/)
+
+
+def busy(health: dict | None) -> bool:
+    """Whether /health shows a request running or waiting; no answer counts as idle (nothing to drain)."""
+    live = (health or {}).get("live") or {}
+    return bool(live.get("connections") or live.get("waiting"))
+
+
+def wait_idle(get, *, quiet: int = 2, interval: float = 1.0, limit: float = 600,
+              sleep=time.sleep, clock=time.monotonic) -> bool:
+    """Until `quiet` readings of `get()` in a row show no request; False if `limit` seconds pass first."""
+    t0, calm = clock(), 0
+    while clock() - t0 < limit:
+        calm = 0 if busy(get()) else calm + 1
+        if calm >= quiet:
+            return True
+        sleep(interval)
+    return False
+
+
+def restart(s: Settings, *, limit: float = 600, force: bool = False) -> None:
+    """Restart once no request is in flight, so no reply or tool call is cut off; the launchd unit when loaded."""
+    log("Waiting for requests in flight to finish")
+    if not wait_idle(lambda: _get(f"{s.url}/health"), limit=limit):
+        if not force:
+            raise RuntimeError(f"requests still running after {limit:.0f} s; try again, or add --force to cut them off")
+        log(f"still busy after {limit:.0f} s; restarting anyway (--force)")
+    unit = f"gui/{os.getuid()}/{LABEL}"
+    if subprocess.run(["launchctl", "print", unit], capture_output=True).returncode == 0:
+        log(f"Idle; kickstarting {LABEL}")
+        subprocess.run(["launchctl", "kickstart", "-k", unit], check=True)
+        time.sleep(5)
+        t0 = time.time()
+        while time.time() - t0 < 1800:
+            h = _get(f"{s.url}/health")
+            if h and h.get("status") == "ok" and not h.get("warming"):
+                log("Restarted and ready")
+                return
+            time.sleep(3)
+        raise RuntimeError(f"not ready 30 min after the restart; see {s.log_file}")
+    log("Idle; no launchd unit loaded, so down then up")
+    down(s)
+    up(s, download=False)
+
+
 def status(s: Settings) -> str:
     p = pid(s)
     lines = [f"pid: {p or 'not running'}", f"url: {s.url}/v1"]

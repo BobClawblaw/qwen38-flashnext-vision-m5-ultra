@@ -207,6 +207,7 @@ python3 -m mac up                  # builds the engine once, finds or downloads 
 python3 -I tools/vision_check.py --url http://127.0.0.1:8888   # the image gate
 python3 -I tools/video_check.py --url http://127.0.0.1:8888    # the video gate
 python3 -m mac down
+python3 -m mac restart             # once no request is in flight (the launchd unit when loaded); --force after --timeout
 ```
 
 An image request is any chat request with an `image_url` part holding a data URL:
