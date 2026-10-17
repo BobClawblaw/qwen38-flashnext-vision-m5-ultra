@@ -1,0 +1,15 @@
+{
+ "url": "http://127.0.0.1:8888",
+ "model": "Qwen3.8-Flash-Next-MLX-6bit",
+ "rows": [
+  {
+   "asked": 925000,
+   "prompt_tokens": 1032827,
+   "ttft_s": 416.7,
+   "prefill_tok_s": 2479,
+   "found": true,
+   "cached": 0,
+   "reply": "The access code for run 1000 is 915117."
+  }
+ ]
+}

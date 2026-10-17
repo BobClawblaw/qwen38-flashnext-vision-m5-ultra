@@ -11,7 +11,7 @@ same_as = ""
 
 [engine]
 tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-shared-vision branch (upstream PR #986)
-tensorfold_sha = "8e4ba6dbc0c9f53d835a1ccd8f8b71976a5b371f"     # PR #986 on #606: main's engine, images and video, image chats cached, structured output
+tensorfold_sha = "394d2e35b36a07d0b8762ca0b93a975274d29bb0"     # PR #986 on #606: main's engine, images and video, image chats cached, structured output
 tensorfold_src = "~/github/TensorFold"   # a checkout holding the sha; `build` adds a worktree at it under tf_cache
 zig = "~/.local/zig/zig"                 # Zig 0.17.0 (.zig-version in the checkout)
 zig_cpu = "apple_m1"
@@ -28,7 +28,7 @@ request_log = ""                         # a file for TENSORFOLD_REQUEST_LOG; em
 
 [serve]
 profile = "chat"                 # chat (MTP drafts, the default) | reference (--no-drafts, the exactness reference)
-# the window: the checkpoint's trained 262,144, plain rotary, the pinned engine's most (no YaRN; the README's 1M section)
+# the window: the checkpoint's trained 262,144 (plain rotary), or up to 1,048,576 with static YaRN x4 (the README's 1M window)
 context = 262144
 drafts = true
 thinking = false
@@ -40,10 +40,11 @@ keep_warm = 86400                # seconds after a request the idle keepalive (a
 learn = false                    # shared prefixes (a system prompt and its tools) kept on disk across restarts (--learn, v1.0.7)
 learn_dir = ""                   # where learned states live; empty: the engine's default
 learn_gib = 0                    # their budget; 0: the engine's default
-vision = true                    # image input (image_url parts: data URLs; PNG and JPEG)
+vision = true                    # image input (image_url parts: data URLs or public https URLs; PNG, JPEG and WebP)
 vision_image_tokens = 4096       # image tokens a request may hold in all (a 2000x1500 photo takes 2,914)
 vision_max_images = 4            # images a request may hold
 video = true                     # video input (video_url parts): builds libtfvideo over a static FFmpeg 9.0.2 once
+vision_urls = true               # image and video parts at public https URLs, fetched by the server (--vision-urls)
 vision_video_tokens = 16384      # visual tokens a request's videos share (a 30 s 720p clip takes about 8,000)
 parallel = 2                     # streams at once (upstream PR #606's shared lane path), each at the full context; 1 the
                                  # single-reply driver; more pass the GPU budget at 262k (see gpu_headroom_gib, the README)

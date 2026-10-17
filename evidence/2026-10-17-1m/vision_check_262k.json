@@ -1,0 +1,106 @@
+{
+ "url": "http://127.0.0.1:8888",
+ "checks": [
+  {
+   "check": "shapes and sides",
+   "ok": true,
+   "prompt_tokens": 183,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 230.5361996801973,
+   "tps_plain": 95.56548780943344,
+   "ttft": 0.195263584,
+   "reply": "There is a red circle on the left and a blue square on the right."
+  },
+  {
+   "check": "top and bottom",
+   "ok": true,
+   "prompt_tokens": 145,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 176.19277023898945,
+   "tps_plain": 95.16386943398687,
+   "ttft": 0.183844625,
+   "reply": " The shape on top is a green triangle."
+  },
+  {
+   "check": "counting",
+   "ok": true,
+   "prompt_tokens": 98,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 59.74414450626901,
+   "tps_plain": 93.40266177037459,
+   "ttft": 0.157119833,
+   "reply": "5"
+  },
+  {
+   "check": "image then 9k words",
+   "ok": true,
+   "prompt_tokens": 10299,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 155.03381105026287,
+   "tps_plain": 92.61611234334428,
+   "ttft": 2.533867583,
+   "reply": "1) A red circle and a blue square.\n2) Biscuit."
+  },
+  {
+   "check": "9k words then image",
+   "ok": true,
+   "prompt_tokens": 10266,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 166.84432497566854,
+   "tps_plain": 93.39284532977403,
+   "ttft": 2.516842458,
+   "reply": "1) Triangle\n2) Biscuit"
+  },
+  {
+   "check": "two images",
+   "ok": true,
+   "prompt_tokens": 256,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 189.16870660276402,
+   "tps_plain": 96.30405241499221,
+   "ttft": 0.218569542,
+   "reply": "The first image displays a red circle and a blue square side-by-side on a light background.\nThe second image contains five black dots arranged in a horizontal line."
+  },
+  {
+   "check": "lossless WebP",
+   "ok": true,
+   "prompt_tokens": 183,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 235.04942083014723,
+   "tps_plain": 94.48328347125678,
+   "ttft": 0.29395025,
+   "reply": "There is a red circle on the left and a blue square on the right."
+  },
+  {
+   "check": "lossy WebP counting",
+   "ok": true,
+   "prompt_tokens": 98,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 58.82655724927018,
+   "tps_plain": 90.5814249563239,
+   "ttft": 0.157181459,
+   "reply": "5"
+  },
+  {
+   "check": "follow-up turn",
+   "ok": true,
+   "prompt_tokens": 178,
+   "drafted_equals_plain": true,
+   "missing": [],
+   "tps_drafted": 136.69905946164982,
+   "tps_plain": 95.8714218508419,
+   "ttft": 0.192511,
+   "reply": "Below it is a yellow circle."
+  }
+ ],
+ "webp_equals_png": true,
+ "text_unchanged": true
+}

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-10-17 (1M window, WebP, media URLs)
+
+- Engine `394d2e35` (the fork's `flashnext-recipe`: #986's head `8e4ba6db`, then a YaRN commit and a WebP commit: #1005
+  and #1004). Measured on `8eb98182`, the same code before a fix to the engine's docs.
+- **1M window:** `context` up to 1,048,576, static YaRN x4 past the trained window (transformers' table, checked), one
+  1M session beside a 262k one; `mac validate` checks such a window against `load_limit_gb` (203.2 GiB wired). Needles
+  at 138,830, 553,139 and 1,032,827 tokens (34, 169 and 417 s to the first token); drafted equal to undrafted at
+  316,469; harness speed at 1M one stream 136.5/197.4/163.7/215.7 tok/s, two 203.0/255.0/231.0/266.1; structured
+  18/18, drafts and concurrent 12/12, image gate 11/11. The default stays 262,144.
+- **WebP:** `mac build` builds libwebp 1.6.0 (its tarball's SHA-256 pinned, Homebrew's) and puts `libwebpdecoder`
+  beside the server; the engine gives Pillow 13.0.0's pixels. `tools/vision_check.py` adds a lossless WebP (its
+  PNG's reply) and a lossy one (`tools/images/`).
+- **Media URLs:** `vision_urls` (default on) passes `--vision-urls`: public https image and video URLs, fetched by the
+  server. The harness's `urls` check passes, and TensorFold's `vision_urls_served.py` 17/17.
+- At 262k: harness one stream 141.5/208.9/175.8/214.4 tok/s, two 194.4/262.0/218.7/271.1, structured 18/18, drafts
+  and concurrent 12/12, video gate 7/7, eight plain replies token-identical to `8e4ba6db`'s.
+
 ## 2026-10-17 (structured output)
 
 - Engine `8e4ba6db` (#986's next commit): shared sessions enforce `response_format`, the `guided_*` fields,

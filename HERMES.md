@@ -5,7 +5,7 @@ For the agent that manages this Mac (Hermes) and for anyone else. Written 2026-1
 ## What runs on :8888
 
 - Qwen3.8-Flash-Next, 6-bit, with image and video input, two replies at once, each with a 262,144-token window
-  (no YaRN), and an 8 GiB prompt cache, served by TensorFold's native Metal engine from this recipe
+  (the trained window, no YaRN), and an 8 GiB prompt cache, served by TensorFold's native Metal engine from this recipe
   (`~/github/qwen38-flashnext-vision-m5-ultra`). These are the recipe's defaults since 2026-10-12; this Mac's
   `local.toml` only sets the host and port.
 - The prompt cache is what makes an agent loop fast: each call resumes where the last one ended and reads only the
@@ -15,15 +15,16 @@ For the agent that manages this Mac (Hermes) and for anyone else. Written 2026-1
   two models cannot share the 256 GB at once. This server keeps about 189 GiB wired with its cache full, leaving
   ~41 GiB: an idle ComfyUI (8 GB) fits beside it, a second model does not. Past its budget `mac up` refuses.
 - Two requests run at once; a third waits. Each holds up to 262,144 tokens; a longer prompt gets a 400.
-- No 1M window: the current engine reads the trained 262,144 tokens at most, and `python3 -m mac validate` refuses more.
+- A 1M window is a setting (`context = 1048576`, static YaRN x4 on every prompt, 203 GiB wired), not the default.
 - Endpoint: `http://<this Mac's LAN address>:8888/v1` or `http://127.0.0.1:8888/v1`. OpenAI-compatible chat, completions
   and Responses, plus Anthropic Messages. No API key: the LAN is trusted. Any model name is accepted; `/v1/models`
   lists `Qwen3.8-Flash-Next-MLX-6bit`.
 - Sampling works: a request's `temperature` (with `top_p`, `top_k`, `min_p`, `seed`) is honored; a request without
   one is greedy. Without a `seed` the same request gives the same reply (the seed comes from the prompt). Four sampled
   streams run about 10% slower than greedy ones.
-- Images go in `image_url` parts as data URLs (base64 PNG or JPEG), up to 4 a request and 4,096 image tokens in all.
-- Videos go in `video_url` parts as data URLs (MP4, MOV, WebM or MKV), up to 2 a request, 16 MiB each, sharing 16,384
+- Images go in `image_url` parts as data URLs or public https URLs (PNG, JPEG or WebP), up to 4 a request and 4,096
+  image tokens in all. The server fetches URLs itself and refuses plain http and private addresses.
+- Videos go in `video_url` parts as data URLs or public https URLs (MP4, MOV, WebM or MKV), up to 2 a request, 16 MiB each, sharing 16,384
   visual tokens. Frames are sampled at 2 a second (at most 256), so a 30 s 720p clip is about 8,000 tokens and 5 s to
   the first token; the model gets each pair of frames with its time.
 - A very long prompt reads at a few thousand tokens a second (a 255k-token prompt takes about 70 s). Replies running

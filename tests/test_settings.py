@@ -88,8 +88,8 @@ class Refusals(unittest.TestCase):
         self.refuse("passes itself", extra_args="--prompt-cache-over-cap")
 
     def test_context_bounds(self):
-        self.refuse("trained window only", context="1048576")
-        self.refuse("trained window only", context="2097152")
+        self.assertEqual(load(context="1048576").context, 1048576)  # YaRN x4's reach
+        self.refuse("four times it with YaRN", context="2097152")
         self.refuse("multiple of 256", context="1000")
         self.refuse("not a decimal integer", context="0100")
 
@@ -107,7 +107,9 @@ class Refusals(unittest.TestCase):
         self.assertNotIn("--vision", load(vision="0").serve_args("/m"))
         self.refuse("outside", vision_image_tokens="32")
         self.refuse("passes itself", extra_args="--vision-max-images 8")
-        self.refuse("not a Flash Next-on-Metal flag", extra_args="--vision-urls")
+        self.refuse("passes itself", extra_args="--vision-urls")
+        self.assertIn("--vision-urls", load().serve_args("/m"))
+        self.assertNotIn("--vision-urls", load(vision_urls="0").serve_args("/m"))
 
     def test_video(self):
         args = load().serve_args("/m")
@@ -151,6 +153,13 @@ class GpuBudget(unittest.TestCase):
         self.assertIn("GPU:", config.gpu_check(load(parallel=2, context=131072), 0, self.RAM))
         with self.assertRaises(config.ConfigError):   # an app that holds 30 GiB: the default no longer fits
             config.gpu_check(load(gpu_headroom_gib=30), 0, self.RAM)
+
+    def test_a_1m_window_holds_one_long_session(self):
+        s = load(context=1048576)
+        self.assertAlmostEqual(config.gpu_gib(s), 199.0, places=1)    # 153.5 + 30 (the 1M session) + 7.5 + 8 cache
+        self.assertIn("load_limit_gb=240 for the 1M window", config.gpu_check(s, 0, self.RAM))  # 223.5 GiB
+        with self.assertRaises(config.ConfigError):                    # without the load limit: past the 74% share
+            config.gpu_check(load(context=1048576, load_limit_gb=0), 0, self.RAM)
 
     def test_a_raised_wired_limit_is_the_budget(self):
         s = load(parallel=4, prompt_cache_gib=24)

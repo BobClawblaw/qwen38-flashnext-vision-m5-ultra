@@ -5,20 +5,29 @@ on one Apple M5 Ultra (256 GB) through [TensorFold](https://github.com/ashhart/T
 text, images and video in one OpenAI-compatible API (`image_url` and `video_url` parts), the trained 262,144-token
 window with an 8 GiB prompt cache (an agent's next call reads only its new turns), MTP drafts, a launchd unit. It serves
 two replies at once by default, each up to 262,144 tokens, so that it fits macOS's GPU memory with room for other apps
-([GPU memory](#gpu-memory)); more streams are a setting away. The previous engine's 1,048,576-token window is not in
-this one ([below](#the-1m-window-and-its-problems)).
+([GPU memory](#gpu-memory)); more streams are a setting away. `context = 1048576` serves a 1,048,576-token window
+through static YaRN x4 ([the 1M window](#the-1m-window)).
 
 The engine is TensorFold's main with cwschroeder's shared sessions
 ([#606](https://github.com/ashhart/TensorFold/pull/606)) and our images and video on top
-([#986](https://github.com/ashhart/TensorFold/pull/986), not merged yet), pinned at `8e4ba6db` on the fork's
-[`flashnext-shared-vision`](https://github.com/BobClawblaw/TensorFold/tree/flashnext-shared-vision) branch:
+([#986](https://github.com/ashhart/TensorFold/pull/986), not merged yet), pinned at `394d2e35` on the fork's
+[`flashnext-recipe`](https://github.com/BobClawblaw/TensorFold/tree/flashnext-recipe) branch: #986's head `8e4ba6db`,
+then the 1M window ([#1005](https://github.com/ashhart/TensorFold/pull/1005)) and WebP
+([#1004](https://github.com/ashhart/TensorFold/pull/1004)), neither merged yet. The measurements below name
+`8eb98182`, the same code before a fix to the engine's docs:
 
 - **Images on Metal:** the Qwen-VL tower TensorFold's 27B uses (`zig/src/core/qwen_vl/`), at Flash Next's 2,560-wide
   output, in bf16 on the GPU. Its rows replace the image tokens in all four hyper-connection streams, turned by
   interleaved M-RoPE in a frame shifted so text after the last image sits at its slot: decode, drafts and shared
   rounds run as for text, and text replies are token-identical to main's. PNG is decoded natively; JPEG by
-  libjpeg-turbo 3.1.4.1, which `mac build` builds once into the cache and puts beside the server (the engine refuses
-  any other release); WebP is refused.
+  libjpeg-turbo 3.1.4.1 and WebP by libwebp 1.6.0's decoder (the release Pillow 13.0.0 bundles; the engine gives
+  Pillow's pixels), which `mac build` builds once into the cache and puts beside the server (the engine refuses any
+  other release of either).
+- **Web links:** `image_url` and `video_url` parts may be public https URLs (`vision_urls`, on by default): the server
+  fetches them itself (port 443, public addresses only, up to 3 redirects, 10 s a download, a declared JPEG, PNG or
+  WebP), and refuses plain http, private, loopback and metadata addresses and bad certificates.
+- **The 1M window:** `context = 1048576` rotates every prompt with static YaRN x4 (Qwen's factor 4 over the trained
+  262,144), in one 1M session beside a 262k one; the default stays the trained window ([below](#the-1m-window)).
 - **Video:** frames sampled at 2 a second (4 to 256), sized over the clip's pixel budget and paired as transformers
   5.17's Qwen3-VL video processor does, each pair an image to the tower, written as `<X.Y seconds>` then its block.
   The served prompt is as long as the processor's on three clips (239, 387 and 8,215 tokens).
@@ -43,7 +52,25 @@ Nothing to convert: the 6-bit checkpoint carries the tower (`vision_tower.*`, bf
 
 Mac Studio M5 Ultra, 256 GB, checkpoint `45032a19`, greedy, thinking off, served by the launchd unit.
 
-**The current engine** (`8e4ba6db`, the defaults: two 262k streams, an 8 GiB cache; 2026-10-17, the recipe harness's
+**The current engine** (`8eb98182`, 2026-10-17, the recipe harness on the recipe's build; the defaults, and
+`context = 1048576` with the same two streams and cache):
+
+| Window | Streams | prose | code | structured | list | first token | drafted / plain |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 262k | 1 | 141.5 | 208.9 | 175.8 | 214.4 | 0.11-0.12 s | 154 / 85 |
+| 262k | 2, aggregate | 194.4 | 262.0 | 218.7 | 271.1 | 0.17-0.19 s | |
+| 1M, YaRN x4 | 1 | 136.5 | 197.4 | 163.7 | 215.7 | 0.11-0.12 s | 152 / 83 |
+| 1M, YaRN x4 | 2, aggregate | 203.0 | 255.0 | 231.0 | 266.1 | 0.17-0.19 s | |
+
+At both windows: structured 18/18, drafted equal to `"draft": false` 12/12, two streams equal to each alone 12/12, and
+the image gate 11/11 (with a lossless WebP that gives its PNG's reply and a lossy one; `tools/vision_check.py`). At
+262k: the harness's `urls` check (a public https image answered, a loopback address and plain http refused), the
+video gate 7/7, TensorFold's `vision_urls_served.py` 17/17 (redirects, private and metadata hosts, bad certificates,
+ports, credentials), a WebP fetched from a public URL, and eight plain replies token-identical to `8e4ba6db`'s.
+Grammar speed (`structured_speed`): one stream 203 / 179 tok/s with the grammar against 199 / 187 without. The quality
+suite (thinking off and on) was not run on this engine.
+
+**`8e4ba6db`** (#986's head; the defaults: two 262k streams, an 8 GiB cache; 2026-10-17, the recipe harness's
 speed plan twice on the recipe's build, beside the previous engine `7808bee8` served the same way that night):
 
 | Engine | Streams | prose | code | structured | list | first token | drafted / plain |
@@ -136,16 +163,35 @@ Video ([`video_check.txt`](evidence/2026-10-11-video/video_check.txt), `tools/vi
 square going left along the bottom, a 30-second 720p clip's two scenes in order (8,206 prompt tokens, first token
 5.0 s), a video beside an image, and a video and a text request at once each equal to their replies alone: 7/7.
 
-## The 1M window and its problems
+## The 1M window
 
-**Not in the current engine:** it has no YaRN, and `mac validate` refuses `context` past 262,144. What follows was
-measured on the previous engines and stays for the record.
+`context = 1048576` in `local.toml` serves up to 1,048,576 tokens. Past the trained 262,144 the engine rotates with
+static YaRN x4 (transformers' `_compute_yarn_parameters`, factor 4 over the trained window, as Qwen's model card
+gives it for vLLM and SGLang) in every rotary kernel, for every prompt; at 262,144 or less nothing changes. The
+engine's own session holds the long window and the second stream 262,144 tokens; a request longer than that takes the
+long session, and waits while it is busy. Measured on this Mac, 2026-10-17, engine `8eb98182`, the defaults otherwise
+(two streams, an 8 GiB prompt cache), [`evidence/2026-10-17-1m/`](evidence/2026-10-17-1m/):
 
-`context = 1048576` in `local.toml` (and `prompt_cache_gib = 0`, see the first point) served up to 1,048,576 tokens.
-It worked, with a needle found at 982k, but it was the default only from 2026-10-11 to 2026-10-12 and these are why it
-was not:
+- **Memory:** 203.2 GiB wired, past the 74% share the GPU budget holds the defaults to ([GPU memory](#gpu-memory));
+  `mac validate` checks a window past 262,144 against `load_limit_gb` (240 GB, 223.5 GiB) instead. Decode stayed
+  steady there (the table above), and the long prompts below read to the end with nothing else on the GPU; with other
+  apps holding GPU memory, lower `parallel` or `prompt_cache_gib`.
+- **Long prompts,** one request each, a needle near the start found in every reply (`tools/prompt_pass.py`):
 
-- **No prompt cache.** Slot 0's 1M caches take the memory the prompt cache would use: four streams at 1M hold about
+  | Prompt | First token | Rate |
+  |---:|---:|---:|
+  | 138,830 tokens | 34 s | 4,038 tok/s |
+  | 553,139 | 169 s | 3,267 tok/s |
+  | 1,032,827 | 417 s | 2,479 tok/s |
+
+- At 316,469 tokens a drafted reply equals `"draft": false`. A short request sent beside a 666,334-token prompt
+  equals its reply alone, after waiting about 205 s for that prompt's pass.
+- **YaRN on every prompt.** It is static: short prompts are scaled too, which Qwen notes can cost short texts. The
+  quality suite was not run on this engine at 1M; the previous engine's numbers below show the size of that cost.
+
+**The previous engines' 1M window** (2026-10-11 to 2026-10-12, four streams), kept for the record:
+
+- **No prompt cache** (four streams). Slot 0's 1M caches take the memory the prompt cache would use: four streams at 1M hold about
   222 GiB, and the default 24 GiB cache on top would reach about 246 GiB of 256 (the engine's override does not stop
   it, so `mac validate` refuses a cache with four streams past 262,144). With no cache every request rereads its
   whole prompt, so an agent loop pays for its full history on every call: Hermes's calls took about 20 s each at 59k
@@ -265,7 +311,7 @@ As the text-only sibling's, plus:
 | Setting | Default | Notes |
 |---|---|---|
 | `parallel` | 2 | replies at once on the shared lane path; 1 the single-reply driver; within the GPU budget |
-| `context` | 262144 | the trained window, the current engine's most (the 1M window was the previous engine's) |
+| `context` | 262144 | the trained window; up to 1048576 with static YaRN x4 ([the 1M window](#the-1m-window)) |
 | `prompt_cache_gib` | 8 | kept prompt states (about 1 GiB a 32k-token conversation); 0 off, -1 what 70% of RAM leaves |
 | `prompt_cache_over_cap` | true | `--prompt-cache-over-cap`: the cache may pass the engine's 70% share |
 | `gpu_headroom_gib` | 12 | GPU memory kept for other apps; `validate` and `up` refuse settings past the budget |
@@ -274,19 +320,20 @@ As the text-only sibling's, plus:
 | `vision_image_tokens`, `vision_max_images` | 4096, 4 | a request's image tokens in all, and images |
 | `video` | true | video input: `mac build` builds a static FFmpeg 9.0.2 and libtfvideo once (about a minute) |
 | `vision_video_tokens` | 16384 | the visual tokens a request's videos share (a 30 s 720p clip takes about 8,000) |
+| `vision_urls` | true | `--vision-urls`: image and video parts at public https URLs, fetched by the server |
 | `port` | 8888 | |
 | `temperature` | `"0"` | the default for requests that send none: greedy; a request's own temperature samples |
 
 ## Not supported
 
-- No image or video URLs (data URLs only), no audio.
+- No audio, and no plain-http or private-network media URLs.
 - Structured output and `tool_choice: "required"` need the shared sessions: with `parallel = 1` the engine answers
   them with a 400.
 - Without a `seed`, a sampled request's seed comes from its prompt (TensorFold's design), so the same request gives
   the same reply; send a `seed` for a different one.
-- Nothing past 262,144 tokens: the current engine has no 1M window (see the 1M section).
+- Nothing past 1,048,576 tokens, and the two-Mac pair reads only the trained 262,144.
 - A turn that adds an image reads its prompt again (follow-ups with the same images resume); `--learn` needs
-  `parallel = 1`. WebP images are refused (PNG and JPEG only).
+  `parallel = 1`. GIF and other formats are refused (PNG, JPEG and WebP); an animated WebP is refused.
 - Past 2,048 tokens the sparse indexer scores blocks before the last image's end at their slot positions, not their
   multimodal ones (selection only; the long-context image checks pass with it).
 

@@ -1,0 +1,3 @@
+long prompt 316469 tokens; drafted == plain: True | found: True
+ drafted 87.3 s; plain 88.8 s; 'The access code for run 42 is 770487.\n\nLighthouses serve as critical navigational aids, gu'
+short beside a 600k read: equal to alone: True | its time 204.8 s; long prompt 666334 in 224.7 s

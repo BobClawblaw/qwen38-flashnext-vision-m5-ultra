@@ -46,6 +46,11 @@ JPEG_VERSION = "3.1.4.1"
 JPEG_URL = f"https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/{JPEG_VERSION}/libjpeg-turbo-{JPEG_VERSION}.tar.gz"
 JPEG_SHA256 = "ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022"
 
+# libwebp's release, the one the engine reads WebP with (Pillow 13.0.0's; any other is refused), and its tarball's hash
+WEBP_VERSION = "1.6.0"
+WEBP_URL = f"https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-{WEBP_VERSION}.tar.gz"
+WEBP_SHA256 = "e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564"
+
 # xgrammar's release the engine's structured output is built against (zig/build/grammar.zig pins the tag), and its commit
 XGRAMMAR_TAG = "v0.2.8"
 XGRAMMAR_COMMIT = "97787376faee5ed8466cfad57c99855e4ce2f6aa"
@@ -54,7 +59,7 @@ XGRAMMAR_REPO = "https://github.com/mlc-ai/xgrammar"
 
 def ensure_binary(s: Settings, rebuild: bool = False) -> Path:
     """The binary to serve with: `binary` as given, or the pinned sha built once (zig build native), with libtfgrammar,
-    libtfvideo and libturbojpeg beside it."""
+    libtfvideo, libturbojpeg and libwebpdecoder beside it."""
     if s.binary:
         return s.run_binary
     if not s.built_binary.is_file() or rebuild:
@@ -65,6 +70,8 @@ def ensure_binary(s: Settings, rebuild: bool = False) -> Path:
         build_video(s)
     if s.vision and not s.built_jpeg.is_file():
         build_jpeg(s)
+    if s.vision and not s.built_webp.is_file():
+        build_webp(s)
     return s.built_binary
 
 
@@ -93,6 +100,34 @@ def build_jpeg(s: Settings) -> None:
             raise RuntimeError(f"the libjpeg-turbo build left no {lib}")
     s.built_jpeg.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(lib.resolve(), s.built_jpeg)
+
+
+def build_webp(s: Settings) -> None:
+    """libwebpdecoder in lib/ beside the binary, where the server looks: libwebp built once into tf_cache."""
+    prefix = s.tf_cache / f"libwebp-{WEBP_VERSION}"
+    lib = prefix / "lib" / "libwebpdecoder.3.dylib"
+    if not lib.is_file():
+        work = s.tf_cache / "libwebp-src"
+        work.mkdir(parents=True, exist_ok=True)
+        tarball = work / f"libwebp-{WEBP_VERSION}.tar.gz"
+        if not tarball.is_file():
+            log(f"Downloading libwebp {WEBP_VERSION}")
+            _run(["curl", "-sfL", "-o", str(tarball), WEBP_URL], timeout=600)
+        got = hashlib.sha256(tarball.read_bytes()).hexdigest()
+        if got != WEBP_SHA256:
+            tarball.unlink()
+            raise RuntimeError(f"{WEBP_URL} has SHA-256 {got}, not the pinned {WEBP_SHA256}")
+        _run(["tar", "xzf", str(tarball), "-C", str(work)])
+        log(f"Building libwebp {WEBP_VERSION} into {prefix}; a minute")
+        tools = ["ANIM_UTILS", "CWEBP", "DWEBP", "GIF2WEBP", "IMG2WEBP", "VWEBP", "WEBPINFO", "WEBPMUX", "EXTRAS"]
+        _run(["cmake", "-S", str(work / f"libwebp-{WEBP_VERSION}"), "-B", str(work / "build"), "-DCMAKE_BUILD_TYPE=Release",
+              f"-DCMAKE_INSTALL_PREFIX={prefix}", "-DBUILD_SHARED_LIBS=ON"] + [f"-DWEBP_BUILD_{t}=OFF" for t in tools], timeout=600)
+        _run(["cmake", "--build", str(work / "build"), "-j", "8"], timeout=1800)
+        _run(["cmake", "--install", str(work / "build")], timeout=600)
+        if not lib.is_file():
+            raise RuntimeError(f"the libwebp build left no {lib}")
+    s.built_webp.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(lib.resolve(), s.built_webp)
 
 
 def build_grammar(s: Settings) -> None:

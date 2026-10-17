@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROFILES = ("chat", "reference")
 TRAINED_CONTEXT = 262144             # the checkpoint's max_position_embeddings
-MAX_CONTEXT = TRAINED_CONTEXT         # the pinned engine has no YaRN: the trained window is its most
+MAX_CONTEXT = 4 * TRAINED_CONTEXT     # past the trained window the engine rotates with static YaRN x4 (every prompt)
 # GPU memory, measured on the M5 Ultra (2026-10-12): the loaded engine without its session (weights, buffers, tower),
 # the tower alone, and one 262,144-token session's caches (each stream holds one, the engine's own included)
 ENGINE_GIB = 153.5
@@ -28,11 +28,11 @@ GPU_SHARE = 0.74
 # takes unambiguous prefixes, so any prefix of these is refused too
 OWNED_FLAGS = ("--host", "--port", "--name", "--context", "--max-tokens", "--thinking", "--no-thinking", "--no-drafts",
                "--no-update-check", "--temperature", "--prompt-cache-gib", "--prompt-cache-over-cap", "--keep-warm", "--learn", "--learn-dir", "--learn-gib", "--compact-at",
-               "--vision", "--vision-image-tokens", "--vision-max-images", "--vision-video-tokens", "--parallel",
+               "--vision", "--vision-image-tokens", "--vision-max-images", "--vision-video-tokens", "--vision-urls", "--parallel",
                "--dashboard", "--api-key")
 # flags the native server has for other families or platforms; refused so a setting is not silently ignored
 UNUSED_FLAGS = ("--speed-up", "--backend", "--device", "--segments", "--kv-dtype", "--tp", "--rank",
-                "--master", "--master-port", "--vision-urls", "--tool-system")
+                "--master", "--master-port", "--tool-system")
 
 
 class ConfigError(ValueError):
@@ -76,6 +76,7 @@ class Settings:
     vision_image_tokens: int
     vision_max_images: int
     video: bool
+    vision_urls: bool
     vision_video_tokens: int
     parallel: int
     load_limit_gb: float
@@ -122,6 +123,11 @@ class Settings:
     def built_jpeg(self) -> Path:
         """libturbojpeg, which the server loads from ../lib beside its binary at the first JPEG."""
         return self.build_dir / "zig-out" / "native" / "lib" / "libturbojpeg.0.dylib"
+
+    @property
+    def built_webp(self) -> Path:
+        """libwebpdecoder, which the server loads from ../lib beside its binary at the first WebP."""
+        return self.build_dir / "zig-out" / "native" / "lib" / "libwebpdecoder.3.dylib"
 
     @property
     def run_binary(self) -> Path:
@@ -175,6 +181,8 @@ class Settings:
         if self.vision:
             args += ["--vision", "--vision-image-tokens", str(self.vision_image_tokens), "--vision-max-images", str(self.vision_max_images),
                      "--vision-video-tokens", str(self.vision_video_tokens)]
+            if self.vision_urls:
+                args.append("--vision-urls")
         if self.parallel > 1:
             args += ["--parallel", str(self.parallel)]
         if self.compact_at:
@@ -200,7 +208,7 @@ class Settings:
     def summary(self) -> str:
         bin_ = self.binary or f"build@{self.tensorfold_sha[:8]}"
         return (f"profile={self.profile} ctx={self.context} drafts={int(self.drafts)} thinking={int(self.thinking)} "
-                f"temp={self.temperature or 'checkpoint'} prompt_cache={self.prompt_cache_gib} learn={int(self.learn)} vision={int(self.vision)} video={int(self.vision and self.video)} parallel={self.parallel} "
+                f"temp={self.temperature or 'checkpoint'} prompt_cache={self.prompt_cache_gib} learn={int(self.learn)} vision={int(self.vision)} video={int(self.vision and self.video)} urls={int(self.vision and self.vision_urls)} parallel={self.parallel} "
                 f"engine={bin_} model={self.repo}@{self.revision[:8]} url={self.url}")
 
 
@@ -291,8 +299,8 @@ def validate(s: Settings) -> None:
         if not lo <= v <= hi:
             raise ConfigError(f"{name}={v} is outside [{lo}, {hi}]")
     if not 256 <= s.context <= MAX_CONTEXT:
-        raise ConfigError(f"context={s.context} must be in [256, {MAX_CONTEXT}]: the pinned engine reads the trained "
-                          "window only (the 1M window was the previous engine's; see the README)")
+        raise ConfigError(f"context={s.context} must be in [256, {MAX_CONTEXT}]: the trained window, or up to four "
+                          "times it with YaRN x4 (see the README's 1M window)")
     if s.context % 256:
         raise ConfigError(f"context={s.context} must be a multiple of 256")
     for name in ("revision", "tensorfold_sha", "spark_recipe_sha"):
@@ -325,15 +333,17 @@ def validate(s: Settings) -> None:
         for unused in UNUSED_FLAGS:
             if unused.startswith(flag):
                 raise ConfigError(f"extra_args sets {word} ({unused}): not a Flash Next-on-Metal flag in this engine "
-                                  "(one Mac; image URLs, kv-dtype, tool-system and grammars are not served for Flash Next here)")
+                                  "(one Mac; kv-dtype and tool-system are not served for Flash Next here)")
     for kv in s.extra_env_pairs:
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", kv):
             raise ConfigError(f"extra_env entry {kv!r} is not KEY=VALUE")
 
 
 def gpu_gib(s: Settings) -> float:
-    """The server's GPU memory once its prompt cache fills: the engine, a session a stream at the window, the cache."""
-    return (ENGINE_GIB - (0.0 if s.vision else TOWER_GIB) + s.parallel * SESSION_GIB * s.context / TRAINED_CONTEXT
+    """The server's GPU memory once its prompt cache fills: the engine, a session a stream, the cache."""
+    # past the trained window only the engine's own session holds it; the other streams' hold the trained window
+    sessions = s.context + (s.parallel - 1) * min(s.context, TRAINED_CONTEXT)
+    return (ENGINE_GIB - (0.0 if s.vision else TOWER_GIB) + SESSION_GIB * sessions / TRAINED_CONTEXT
             + max(s.prompt_cache_gib, 0))
 
 
@@ -349,6 +359,9 @@ def gpu_budget_gib(limit_mb: int | None, ram_bytes: int | None) -> tuple[float, 
 def gpu_check(s: Settings, limit_mb: int | None, ram_bytes: int | None) -> str:
     """A line for the log, or ConfigError when the server and gpu_headroom_gib pass the GPU budget."""
     b = gpu_budget_gib(limit_mb, ram_bytes)
+    if b is not None and not limit_mb and s.context > TRAINED_CONTEXT and s.load_limit_gb > 0:
+        # the 1M window's 30 GiB session passes the share: its budget is the engine's load limit (measured, README)
+        b = s.load_limit_gb * 1e9 / 2**30, f"load_limit_gb={s.load_limit_gb:g} for the 1M window, past the {GPU_SHARE:.0%} share"
     need = gpu_gib(s)
     if b is None:
         return f"GPU: about {need:.0f} GiB (no budget reading)"
