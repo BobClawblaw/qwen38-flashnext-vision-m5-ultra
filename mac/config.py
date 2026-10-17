@@ -109,6 +109,11 @@ class Settings:
         return self.build_dir / "zig-out" / "native" / "bin" / "tensorfold-native"
 
     @property
+    def built_grammar(self) -> Path:
+        """libtfgrammar (xgrammar), which the server loads beside its binary (../lib) at the first structured request."""
+        return self.build_dir / "zig-out" / "native" / "lib" / "libtfgrammar.dylib"
+
+    @property
     def built_video(self) -> Path:
         """libtfvideo, which the server loads beside its binary (../lib) on the first video request."""
         return self.build_dir / "zig-out" / "native" / "lib" / "libtfvideo.dylib"

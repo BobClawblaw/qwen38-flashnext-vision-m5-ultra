@@ -13,7 +13,7 @@ harness dependencies, stdlib Python only.
   since 2026-10-09. Do not pin another precision; a mixed layout is upstream engine work.
 - **Sampling.** Shared sessions sample a request's temperature on the host (families/flashnext/sample.zig, the lane
   core's keyed sampler); `temperature = "0"` keeps requests without one greedy. `parallel = 1` samples too (rounds one at a time).
-- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-shared-vision `8a509ab5`: upstream PR #986 on #606, main's engine with our images, video and cached image chats; libjpeg-turbo 3.1.4.1 built beside it) and built into a worktree under `tf_cache`; never build
+- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-shared-vision `8e4ba6db`: upstream PR #986 on #606, main's engine with our images, video, cached image chats and structured output; libtfgrammar and libjpeg-turbo 3.1.4.1 built beside it) and built into a worktree under `tf_cache`; never build
   in the user's checkout. To try a branch, build it elsewhere and point `binary` at it; re-pin only after the suite and
   the ruler rerun.
 - **The Spark recipe's suite and ruler are called, not copied.** `python3 -m mac suite` and `ruler` run them from a
@@ -31,7 +31,7 @@ harness dependencies, stdlib Python only.
   HumanEval needs Docker (Colima here), `--sandbox-image python:3.12-slim`, and `TMPDIR` under `$HOME` (Colima shares
   only home); dataset downloads need `SSL_CERT_FILE` from certifi on python.org's Python.
 
-- **Not served here:** image and video URLs, `--kv-dtype`, `--tool-system`, grammars, `--speed-up`; the guards refuse the flags.
+- **Not served here:** image and video URLs, `--kv-dtype`, `--tool-system`, `--speed-up`; the guards refuse the flags.
 - **Vision:** `tools/vision_check.py` is the image gate (stdlib, draws its own images) and `tools/video_check.py` the
   video gate (clips in `tools/clips`); run both after any engine or setting change. Image prompts are never kept by the prompt cache (their multimodal frame depends on every image).
   The tower's attention keeps fp32 scores in memory: a full-size photo takes ~1.5 s in it. A fused attention kernel

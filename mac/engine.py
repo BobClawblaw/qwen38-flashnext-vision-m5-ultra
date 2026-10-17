@@ -46,14 +46,21 @@ JPEG_VERSION = "3.1.4.1"
 JPEG_URL = f"https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/{JPEG_VERSION}/libjpeg-turbo-{JPEG_VERSION}.tar.gz"
 JPEG_SHA256 = "ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022"
 
+# xgrammar's release the engine's structured output is built against (zig/build/grammar.zig pins the tag), and its commit
+XGRAMMAR_TAG = "v0.2.8"
+XGRAMMAR_COMMIT = "97787376faee5ed8466cfad57c99855e4ce2f6aa"
+XGRAMMAR_REPO = "https://github.com/mlc-ai/xgrammar"
+
 
 def ensure_binary(s: Settings, rebuild: bool = False) -> Path:
-    """The binary to serve with: `binary` as given, or the pinned sha built once (zig build native), with libtfvideo
-    and libturbojpeg beside it."""
+    """The binary to serve with: `binary` as given, or the pinned sha built once (zig build native), with libtfgrammar,
+    libtfvideo and libturbojpeg beside it."""
     if s.binary:
         return s.run_binary
     if not s.built_binary.is_file() or rebuild:
         build(s)
+    if rebuild or not s.built_grammar.is_file():
+        build_grammar(s)
     if s.vision and s.video and (rebuild or not s.built_video.is_file()):
         build_video(s)
     if s.vision and not s.built_jpeg.is_file():
@@ -86,6 +93,22 @@ def build_jpeg(s: Settings) -> None:
             raise RuntimeError(f"the libjpeg-turbo build left no {lib}")
     s.built_jpeg.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(lib.resolve(), s.built_jpeg)
+
+
+def build_grammar(s: Settings) -> None:
+    """libtfgrammar beside the binary (structured output): xgrammar cloned once into tf_cache, then zig build grammar."""
+    src = ensure_source(s)
+    root = s.tf_cache / f"xgrammar-{XGRAMMAR_TAG}"
+    if not (root / ".git").exists():
+        log(f"Cloning xgrammar {XGRAMMAR_TAG} with its submodules into {root}")
+        _run(["git", "clone", "--branch", XGRAMMAR_TAG, "--recurse-submodules", XGRAMMAR_REPO, str(root)], timeout=1800)
+    head = _run(["git", "-C", str(root), "rev-parse", "HEAD"]).strip()
+    if head != XGRAMMAR_COMMIT:
+        raise RuntimeError(f"{root} is at {head[:8]}, not xgrammar {XGRAMMAR_TAG}'s {XGRAMMAR_COMMIT[:8]}; remove it to clone again")
+    log(f"Building libtfgrammar (zig build grammar -Dxgrammar={root})")
+    _run([str(s.zig), "build", "grammar", f"-Dxgrammar={root}", f"-Dcpu={s.zig_cpu}"], cwd=src, timeout=3600)
+    if not s.built_grammar.is_file():
+        raise RuntimeError(f"the build left no {s.built_grammar}")
 
 
 def build_video(s: Settings) -> None:

@@ -10,7 +10,7 @@ this one ([below](#the-1m-window-and-its-problems)).
 
 The engine is TensorFold's main with cwschroeder's shared sessions
 ([#606](https://github.com/ashhart/TensorFold/pull/606)) and our images and video on top
-([#986](https://github.com/ashhart/TensorFold/pull/986), not merged yet), pinned at `8a509ab5` on the fork's
+([#986](https://github.com/ashhart/TensorFold/pull/986), not merged yet), pinned at `8e4ba6db` on the fork's
 [`flashnext-shared-vision`](https://github.com/BobClawblaw/TensorFold/tree/flashnext-shared-vision) branch:
 
 - **Images on Metal:** the Qwen-VL tower TensorFold's 27B uses (`zig/src/core/qwen_vl/`), at Flash Next's 2,560-wide
@@ -26,6 +26,10 @@ The engine is TensorFold's main with cwschroeder's shared sessions
   and prompt passes stepped between the other streams' rounds.
 - **Image and video chats in the prompt cache:** a follow-up turn with the same images resumes past them (a turn that
   adds an image reads its prompt again), and replies equal the cache off's.
+- **Structured output:** `response_format` (`json_object`, `json_schema`), the `guided_*` fields (JSON, regex,
+  choice, EBNF grammar), `tool_choice: "required"` and a named function, through xgrammar v0.2.8's `libtfgrammar`,
+  which `mac build` builds once beside the server. A constrained row's other tokens are masked on the GPU before the
+  draw; drafts stay on, and drafted, `"draft": false` and concurrent replies are the same.
 - **#606's first token:** after each reply the shared host read the next turn ahead in the background even when the
   cache kept nothing of it, and the next request waited on it (0.28-0.31 s to the first token, drafts 126/73 tok/s);
   #986 skips such passes.
@@ -39,20 +43,25 @@ Nothing to convert: the 6-bit checkpoint carries the tower (`vision_tower.*`, bf
 
 Mac Studio M5 Ultra, 256 GB, checkpoint `45032a19`, greedy, thinking off, served by the launchd unit.
 
-**The current engine** (`8a509ab5`, the defaults: two 262k streams, an 8 GiB cache; 2026-10-17, the recipe harness's
-speed plan, beside the previous engine `7808bee8` served the same way that night):
+**The current engine** (`8e4ba6db`, the defaults: two 262k streams, an 8 GiB cache; 2026-10-17, the recipe harness's
+speed plan twice on the recipe's build, beside the previous engine `7808bee8` served the same way that night):
 
 | Engine | Streams | prose | code | structured | list | first token | drafted / plain |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `8a509ab5` | 1 | 138.3 | 206.4 | 168.9 | 211.4 | 0.11-0.12 s | 155 / 84 |
-| `8a509ab5` | 2, aggregate | 194.7 | 262.1 | 221.2 | 269.8 | 0.17-0.19 s | |
+| `8e4ba6db` | 1 | 138.3 / 142.4 | 204.3 / 206.1 | 173.7 / 173.4 | 207.1 / 211.5 | 0.11-0.12 s | 155 / 84 |
+| `8e4ba6db` | 2, aggregate | 195.0 / 195.1 | 263.0 / 259.7 | 218.7 / 219.7 | 276.0 / 276.6 | 0.17-0.19 s | |
 | `7808bee8` | 1 | 138.4 | 202.8 | 169.6 | 207.4 | 0.11-0.12 s | 154 / 83 |
 | `7808bee8` | 2, aggregate | 196.2 | 253.3 | 220.6 | 268.8 | 0.18-0.20 s | |
 
-On the served unit: the image gate 8/8 (`tools/vision_check.py`: small images 0.15-0.22 s to the first token, 10k-token
-image prompts 2.5 s, drafted equal to undrafted), the video gate 7/7 (`tools/video_check.py`: the 30-second 720p clip
-3.2 s to the first token; the previous engine missed its scenes' order that night), a JPEG through the built
-libturbojpeg, and 180.4 GiB wired at startup. Against a server with the cache off, five-turn image and three-turn
+The harness's structured check passed 18/18 on both runs (six grammar kinds, greedy, sampled and thinking; a bad regex
+is a 400); on the previous engine and on `8a509ab5` it was 0/18 (refused). A grammar costs no decode speed: the harness's `structured_speed` check (greedy, thinking off, a 12-person `json_schema` reply and a `json_object` one, the same prompts with the grammar off and on) gave one stream 206 / 180 tok/s with the grammar (194 / 184 without; 92 / 93 undrafted), two grammar streams 263 / 236 tok/s in all (253 / 239 without), and a plain stream 129 / 123 tok/s beside a grammar stream (125 / 114 beside a plain one). On the served unit, drafted equals
+`"draft": false` in all 12 greedy and sampled cases, a constrained reply beside a plain one leaves the plain one
+unchanged, `tool_choice: "required"` and a named function give valid calls, and eight plain replies (greedy and
+sampled) are token-identical to `8a509ab5`'s; the image and video gates pass on it again. On `8a509ab5`'s served unit:
+the image gate 8/8 (`tools/vision_check.py`: small images 0.15-0.22 s to the first token, 10k-token image prompts
+2.5 s, drafted equal to undrafted), the video gate 7/7 (`tools/video_check.py`: the 30-second 720p clip 3.2 s to the
+first token; the previous engine missed its scenes' order that night), a JPEG through the built libturbojpeg, and
+180.4 GiB wired at startup (the masks add 1.4 MiB at two streams). Against a server with the cache off, five-turn image and three-turn
 video chats gave equal replies while follow-ups resumed 277 to 580 tokens past their images. The quality suite
 (thinking off and on) was not run on this engine; the tables below are the previous engines'.
 
@@ -271,9 +280,8 @@ As the text-only sibling's, plus:
 ## Not supported
 
 - No image or video URLs (data URLs only), no audio.
-- No constrained output: `response_format` (`json_object`, `json_schema`), the `guided_*` fields and grammars are
-  refused with a 400 (the recipe harness's structured check, 0/18 on `8a509ab5` and `7808bee8` alike). Ask for JSON
-  in the prompt instead (the suite's JSON mode above, 30/30, is that).
+- Structured output and `tool_choice: "required"` need the shared sessions: with `parallel = 1` the engine answers
+  them with a 400.
 - Without a `seed`, a sampled request's seed comes from its prompt (TensorFold's design), so the same request gives
   the same reply; send a `seed` for a different one.
 - Nothing past 262,144 tokens: the current engine has no 1M window (see the 1M section).

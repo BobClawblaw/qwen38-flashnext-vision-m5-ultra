@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-10-17 (structured output)
+
+- Engine `8e4ba6db` (#986's next commit): shared sessions enforce `response_format`, the `guided_*` fields,
+  `tool_choice: "required"` and a named function. `mac build` clones xgrammar v0.2.8 (its commit checked) into the cache
+  and builds `libtfgrammar` beside the server. The recipe harness's structured check 18/18 (0/18 before); drafted equal
+  to `"draft": false`, a constrained stream beside a plain one, plain replies token-identical to `8a509ab5`'s; speed
+  plan twice: one stream 138-142/204-206/173-174/207-212 tok/s, two 195/260-263/219-220/276-277, drafts 155/84 tok/s.
+  With a grammar on, decode is as fast (harness `structured_speed`: one stream 206/180 tok/s against 194/184 off,
+  two streams 263/236 against 253/239). Image gate 8/8, video gate 7/7. The README's speed table is now these runs (the `8a509ab5` rows came from a build of
+  the same code outside the recipe's).
+
 ## 2026-10-17 (main's engine)
 
 - Engine `8a509ab5` (BobClawblaw/TensorFold `flashnext-shared-vision`, upstream PR #986 stacked on #606): TensorFold

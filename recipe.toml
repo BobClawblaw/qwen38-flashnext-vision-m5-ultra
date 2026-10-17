@@ -11,7 +11,7 @@ same_as = ""
 
 [engine]
 tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-shared-vision branch (upstream PR #986)
-tensorfold_sha = "8a509ab5510159b7b88a2ff0e828899a28b3bf79"     # PR #986 on #606: main's engine, images and video, image chats cached
+tensorfold_sha = "8e4ba6dbc0c9f53d835a1ccd8f8b71976a5b371f"     # PR #986 on #606: main's engine, images and video, image chats cached, structured output
 tensorfold_src = "~/github/TensorFold"   # a checkout holding the sha; `build` adds a worktree at it under tf_cache
 zig = "~/.local/zig/zig"                 # Zig 0.17.0 (.zig-version in the checkout)
 zig_cpu = "apple_m1"
