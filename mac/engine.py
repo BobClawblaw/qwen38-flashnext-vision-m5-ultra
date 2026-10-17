@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -39,15 +41,51 @@ def ensure_source(s: Settings) -> Path:
     return s.build_dir
 
 
+# libjpeg-turbo's release, the one the engine reads JPEG with (it refuses JPEG with any other), and its tarball's hash
+JPEG_VERSION = "3.1.4.1"
+JPEG_URL = f"https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/{JPEG_VERSION}/libjpeg-turbo-{JPEG_VERSION}.tar.gz"
+JPEG_SHA256 = "ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022"
+
+
 def ensure_binary(s: Settings, rebuild: bool = False) -> Path:
-    """The binary to serve with: `binary` as given, or the pinned sha built once (zig build native), with libtfvideo."""
+    """The binary to serve with: `binary` as given, or the pinned sha built once (zig build native), with libtfvideo
+    and libturbojpeg beside it."""
     if s.binary:
         return s.run_binary
     if not s.built_binary.is_file() or rebuild:
         build(s)
     if s.vision and s.video and (rebuild or not s.built_video.is_file()):
         build_video(s)
+    if s.vision and not s.built_jpeg.is_file():
+        build_jpeg(s)
     return s.built_binary
+
+
+def build_jpeg(s: Settings) -> None:
+    """libturbojpeg in lib/ beside the binary, where the server looks: libjpeg-turbo built once into tf_cache."""
+    prefix = s.tf_cache / f"libjpeg-turbo-{JPEG_VERSION}"
+    lib = prefix / "lib" / "libturbojpeg.0.dylib"
+    if not lib.is_file():
+        work = s.tf_cache / "libjpeg-turbo-src"
+        work.mkdir(parents=True, exist_ok=True)
+        tarball = work / f"libjpeg-turbo-{JPEG_VERSION}.tar.gz"
+        if not tarball.is_file():
+            log(f"Downloading libjpeg-turbo {JPEG_VERSION}")
+            _run(["curl", "-sfL", "-o", str(tarball), JPEG_URL], timeout=600)
+        got = hashlib.sha256(tarball.read_bytes()).hexdigest()
+        if got != JPEG_SHA256:
+            tarball.unlink()
+            raise RuntimeError(f"{JPEG_URL} has SHA-256 {got}, not the pinned {JPEG_SHA256}")
+        _run(["tar", "xzf", str(tarball), "-C", str(work)])
+        log(f"Building libjpeg-turbo {JPEG_VERSION} into {prefix}; a minute")
+        _run(["cmake", "-S", str(work / f"libjpeg-turbo-{JPEG_VERSION}"), "-B", str(work / "build"),
+              "-DCMAKE_BUILD_TYPE=Release", f"-DCMAKE_INSTALL_PREFIX={prefix}"], timeout=600)
+        _run(["cmake", "--build", str(work / "build"), "-j", "8"], timeout=1800)
+        _run(["cmake", "--install", str(work / "build")], timeout=600)
+        if not lib.is_file():
+            raise RuntimeError(f"the libjpeg-turbo build left no {lib}")
+    s.built_jpeg.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(lib.resolve(), s.built_jpeg)
 
 
 def build_video(s: Settings) -> None:

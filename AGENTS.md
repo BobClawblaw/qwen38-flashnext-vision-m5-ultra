@@ -1,7 +1,7 @@
 # Working on this recipe
 
 Serve `TensorFold/Qwen3.8-Flash-Next-MLX-6bit-MTP` with image input on one M5 Ultra with TensorFold's native Metal
-engine, built from the BobClawblaw/TensorFold `flashnext-sampling` branch (vision, #606 streams, video, sampling, an optional 1M window). Everything
+engine, built from the BobClawblaw/TensorFold `flashnext-shared-vision` branch (upstream #986 on #606: main, shared streams, images, video). Everything
 in this tree is original to this project: no code copied from other recipes (the Spark and GLM recipes included), no
 harness dependencies, stdlib Python only.
 
@@ -13,7 +13,7 @@ harness dependencies, stdlib Python only.
   since 2026-10-09. Do not pin another precision; a mixed layout is upstream engine work.
 - **Sampling.** Shared sessions sample a request's temperature on the host (families/flashnext/sample.zig, the lane
   core's keyed sampler); `temperature = "0"` keeps requests without one greedy. `parallel = 1` samples too (rounds one at a time).
-- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-lane-parity `c507c94f`: sethforprivacy's `add3da3` on our flashnext-video, plus the top_k 0 sampler, run with `FLASHNEXT_RESIDENCY=all`: every buffer in the residency set, committed between requests) and built into a worktree under `tf_cache`; never build
+- **The engine is pinned by commit** (`tensorfold_sha`, flashnext-shared-vision `8a509ab5`: upstream PR #986 on #606, main's engine with our images, video and cached image chats; libjpeg-turbo 3.1.4.1 built beside it) and built into a worktree under `tf_cache`; never build
   in the user's checkout. To try a branch, build it elsewhere and point `binary` at it; re-pin only after the suite and
   the ruler rerun.
 - **The Spark recipe's suite and ruler are called, not copied.** `python3 -m mac suite` and `ruler` run them from a
@@ -38,9 +38,9 @@ harness dependencies, stdlib Python only.
   is the obvious speed-up.
 - **On this Mac** the launchd unit serves it on :8888 to the LAN, no API key, superseding MTPLX: see HERMES.md. Don't
   `mac up`/`down` while the unit is loaded.
-- **Memory decides the shape:** every buffer is held (`FLASHNEXT_RESIDENCY=all`), so the server's memory stays wired.
+- **Memory decides the shape:** the engine holds its, its sessions' and the tower's buffers in one residency set, so the server's memory stays wired.
   The default is two streams (`parallel = 2`, upstream #606's shared lane path, not merged) at the trained 262,144 with
-  an 8 GiB prompt cache, ~189 GiB wired, and the lone driver off (`FLASHNEXT_NO_LONE=1`: it ran some replies at half
+  an 8 GiB prompt cache, ~180 GiB wired, and the lone driver off (`FLASHNEXT_NO_LONE=1`: it ran some replies at half
   speed). `mac validate` and `up` refuse settings past 74% of RAM less `gpu_headroom_gib` (config.gpu_check). Four
   streams worked at 202-209 GiB wired but left 25 GiB free and ran some replies slow. Never raise the wired limit or
   run anything large beside it without asking.

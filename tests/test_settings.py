@@ -87,13 +87,9 @@ class Refusals(unittest.TestCase):
         self.assertNotIn("--prompt-cache-over-cap", load(prompt_cache_gib="0").serve_args("/m"))   # off: nothing to pass
         self.refuse("passes itself", extra_args="--prompt-cache-over-cap")
 
-    def test_1m_needs_the_cache_off(self):
-        self.refuse("leaves no memory", context="1048576", parallel="4")
-        args = load(context="1048576", prompt_cache_gib="0").serve_args("/m")
-        self.assertEqual(args[args.index("--context") + 1], "1048576")
-
     def test_context_bounds(self):
-        self.refuse("YaRN x4", context="2097152")
+        self.refuse("trained window only", context="1048576")
+        self.refuse("trained window only", context="2097152")
         self.refuse("multiple of 256", context="1000")
         self.refuse("not a decimal integer", context="0100")
 

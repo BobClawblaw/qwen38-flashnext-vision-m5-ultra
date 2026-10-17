@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-10-17 (main's engine)
+
+- Engine `8a509ab5` (BobClawblaw/TensorFold `flashnext-shared-vision`, upstream PR #986 stacked on #606): TensorFold
+  main with cwschroeder's shared sessions and our images and video on the Qwen-VL tower TensorFold's 27B uses, in place of
+  `7808bee8` (v1.0.7 with its own tower). The recipe harness's speed plan the same night: one stream 138/206/169/211
+  tok/s and 0.11-0.12 s to the first token (the previous engine 138/203/170/207, 0.11-0.12 s), two streams 195/262/221/270
+  in all (196/253/221/269), drafts 155/84 tok/s (154/83). Image gate 8/8, video gate 7/7 (the previous engine 6/7),
+  180.4 GiB wired.
+- Image and video chats resume from the prompt cache: a follow-up with the same images resumes past them, replies equal
+  to the cache off's.
+- `mac build` builds libjpeg-turbo 3.1.4.1 (its release tarball, SHA-256 pinned) into the cache and puts libturbojpeg
+  beside the server: the engine reads JPEG with that release only. WebP is refused.
+- No 1M window: the engine has no YaRN, so `mac validate` refuses `context` past 262,144. `extra_env` drops
+  `FLASHNEXT_RESIDENCY=all` (the engine holds its buffers itself).
+- The quality suite was not rerun on this engine.
+
 ## 2026-10-12 (graceful restart)
 
 - `python3 -m mac restart` waits until /health shows no request running or waiting (two readings in a row), then

@@ -5,44 +5,56 @@ on one Apple M5 Ultra (256 GB) through [TensorFold](https://github.com/ashhart/T
 text, images and video in one OpenAI-compatible API (`image_url` and `video_url` parts), the trained 262,144-token
 window with an 8 GiB prompt cache (an agent's next call reads only its new turns), MTP drafts, a launchd unit. It serves
 two replies at once by default, each up to 262,144 tokens, so that it fits macOS's GPU memory with room for other apps
-([GPU memory](#gpu-memory)); shared streams are a setting away. A 1,048,576-token window is a setting away, with costs listed
-[below](#the-1m-window-and-its-problems).
+([GPU memory](#gpu-memory)); more streams are a setting away. The previous engine's 1,048,576-token window is not in
+this one ([below](#the-1m-window-and-its-problems)).
 
-Upstream TensorFold v1.0.7 serves Flash Next on Metal one reply at a time, up to 262,144 tokens, text only. This recipe
-builds the [`flashnext-sampling`](https://github.com/BobClawblaw/TensorFold/tree/flashnext-sampling)
-branch, v1.0.7 plus six things:
+The engine is TensorFold's main with cwschroeder's shared sessions
+([#606](https://github.com/ashhart/TensorFold/pull/606)) and our images and video on top
+([#986](https://github.com/ashhart/TensorFold/pull/986), not merged yet), pinned at `8a509ab5` on the fork's
+[`flashnext-shared-vision`](https://github.com/BobClawblaw/TensorFold/tree/flashnext-shared-vision) branch:
 
-- **Image input on Metal** (`zig/src/families/flashnext/vision.zig`, `image.zig`, `vis_prompt.zig`): transformers'
-  `Qwen4ExpVisionModel` in bf16 on the GPU (within bf16 noise of it on eight images), the processor's preparation
-  (ImageIO, EXIF orientation, alpha over white, `smart_resize`, PIL's bicubic), and the tower's rows over the image
-  tokens with transformers' multimodal positions, in a frame shifted so text after the last image sits at its slot:
-  decode, drafts and shared rounds are untouched, and text replies are byte-identical to v1.0.7's.
-- **Four streams** from upstream [#606](https://github.com/ashhart/TensorFold/pull/606) (cwschroeder's shared lane path),
-  with the load limit offered there (`FLASHNEXT_LOAD_LIMIT_GB`) and images in each stream's prefill.
-- **An optional 1M window** (not the default): static YaRN x4 past the trained 262,144 (transformers' table, unit-tested) in every rotary kernel,
-  the engine's cap a runtime value (a 262k server allocates as before), slot 0 holding the full window and slots 1-3
-  the trained one, long requests waiting for slot 0, and prompt chunks shortened past 262k so the indexer's scores fit.
-- **Prompt passes that don't stall the others**: a stream's prompt is read in steps between the other streams' rounds
-  (the lane core's `prefill_step`), 1,024 rows a step while others decode and only once their rounds have had as long
-  as the step before, so a long read and the replies around it share the GPU half and half; alone it reads at full
-  speed, and a short prompt's single step never waits.
-  At the default `context = 262144` the kernels take the plain rotary, bit-identical to v1.0.7.
-- **Video input** (`zig/src/families/flashnext/video.zig`, upstream [#618](https://github.com/ashhart/TensorFold/pull/618)'s
-  libtfvideo over FFmpeg 9.0.2): frames sampled at 2 a second (4 to 256), sized over the clip's pixel budget and
-  paired as transformers' Qwen3-VL video processor does, each pair an image to the tower, written as
-  `<X.Y seconds>` then its rows. The server's `/tokenize` equals transformers' `input_ids` on 12 clips across codecs
-  and containers ([`transformers_prompt_ids.txt`](evidence/2026-10-11-video/transformers_prompt_ids.txt)).
+- **Images on Metal:** the Qwen-VL tower TensorFold's 27B uses (`zig/src/core/qwen_vl/`), at Flash Next's 2,560-wide
+  output, in bf16 on the GPU. Its rows replace the image tokens in all four hyper-connection streams, turned by
+  interleaved M-RoPE in a frame shifted so text after the last image sits at its slot: decode, drafts and shared
+  rounds run as for text, and text replies are token-identical to main's. PNG is decoded natively; JPEG by
+  libjpeg-turbo 3.1.4.1, which `mac build` builds once into the cache and puts beside the server (the engine refuses
+  any other release); WebP is refused.
+- **Video:** frames sampled at 2 a second (4 to 256), sized over the clip's pixel budget and paired as transformers
+  5.17's Qwen3-VL video processor does, each pair an image to the tower, written as `<X.Y seconds>` then its block.
+  The served prompt is as long as the processor's on three clips (239, 387 and 8,215 tokens).
+- **Two streams** on #606's shared sessions (`parallel`), with its load limit (`FLASHNEXT_LOAD_LIMIT_GB`), sampling
+  and prompt passes stepped between the other streams' rounds.
+- **Image and video chats in the prompt cache:** a follow-up turn with the same images resumes past them (a turn that
+  adds an image reads its prompt again), and replies equal the cache off's.
+- **#606's first token:** after each reply the shared host read the next turn ahead in the background even when the
+  cache kept nothing of it, and the next request waited on it (0.28-0.31 s to the first token, drafts 126/73 tok/s);
+  #986 skips such passes.
 
-- **Sampling** (`zig/src/families/flashnext/sample.zig`): a request with a temperature draws each token on the host
-  from the head's logits with the server's keyed sampler (top-k, top-p, min-p, a `seed` or one derived from the
-  prompt). MTP drafts still help: a draft is kept when it equals the drawn token, so a sampled reply is the same
-  drafted and undrafted, and alone or beside other streams. Greedy replies are unchanged.
+The previous engine, `7808bee8` (the fork's `flashnext-lane-parity`, on v1.0.7), had its own tower and an optional
+1M window; the measurements below name the engine they were taken on.
 
 Nothing to convert: the 6-bit checkpoint carries the tower (`vision_tower.*`, bf16, 1.7 GiB loaded with scratch).
 
 ## Measured on this Mac
 
 Mac Studio M5 Ultra, 256 GB, checkpoint `45032a19`, greedy, thinking off, served by the launchd unit.
+
+**The current engine** (`8a509ab5`, the defaults: two 262k streams, an 8 GiB cache; 2026-10-17, the recipe harness's
+speed plan, beside the previous engine `7808bee8` served the same way that night):
+
+| Engine | Streams | prose | code | structured | list | first token | drafted / plain |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `8a509ab5` | 1 | 138.3 | 206.4 | 168.9 | 211.4 | 0.11-0.12 s | 155 / 84 |
+| `8a509ab5` | 2, aggregate | 194.7 | 262.1 | 221.2 | 269.8 | 0.17-0.19 s | |
+| `7808bee8` | 1 | 138.4 | 202.8 | 169.6 | 207.4 | 0.11-0.12 s | 154 / 83 |
+| `7808bee8` | 2, aggregate | 196.2 | 253.3 | 220.6 | 268.8 | 0.18-0.20 s | |
+
+On the served unit: the image gate 8/8 (`tools/vision_check.py`: small images 0.15-0.22 s to the first token, 10k-token
+image prompts 2.5 s, drafted equal to undrafted), the video gate 7/7 (`tools/video_check.py`: the 30-second 720p clip
+3.2 s to the first token; the previous engine missed its scenes' order that night), a JPEG through the built
+libturbojpeg, and 180.4 GiB wired at startup. Against a server with the cache off, five-turn image and three-turn
+video chats gave equal replies while follow-ups resumed 277 to 580 tokens past their images. The quality suite
+(thinking off and on) was not run on this engine; the tables below are the previous engines'.
 
 **Four streams** (`parallel = 4`, 262,144 tokens, 24 GiB prompt cache; the default until 2026-10-12, now past the GPU
 budget below; engine `ddc17bb6`, [`evidence/2026-10-12-262k-cache/`](evidence/2026-10-12-262k-cache/)):
@@ -117,9 +129,12 @@ square going left along the bottom, a 30-second 720p clip's two scenes in order 
 
 ## The 1M window and its problems
 
-`context = 1048576` in `local.toml` (and `prompt_cache_gib = 0`, see the first point) serves up to 1,048,576 tokens.
-It works, with a needle found at 982k, but it was the default only from 2026-10-11 to 2026-10-12 and these are why it
-is not:
+**Not in the current engine:** it has no YaRN, and `mac validate` refuses `context` past 262,144. What follows was
+measured on the previous engines and stays for the record.
+
+`context = 1048576` in `local.toml` (and `prompt_cache_gib = 0`, see the first point) served up to 1,048,576 tokens.
+It worked, with a needle found at 982k, but it was the default only from 2026-10-11 to 2026-10-12 and these are why it
+was not:
 
 - **No prompt cache.** Slot 0's 1M caches take the memory the prompt cache would use: four streams at 1M hold about
   222 GiB, and the default 24 GiB cache on top would reach about 246 GiB of 256 (the engine's override does not stop
@@ -138,9 +153,10 @@ is not:
 
 ## GPU memory
 
-The defaults serve two streams at 262,144 tokens with an 8 GiB prompt cache: about 189 GiB wired with every buffer
-held, about 41 GiB left free. Everything on the GPU counts (an idle ComfyUI holds 8 GB; with a model loaded, more).
-Measured on this Mac, 2026-10-12, with the residency fix below, 30 mixed single replies a run
+The defaults serve two streams at 262,144 tokens with an 8 GiB prompt cache: 180.4 GiB wired at startup on the current
+engine (about 189 GiB on the previous one with every buffer held), the rest left to macOS and other apps. Everything on
+the GPU counts (an idle ComfyUI holds 8 GB; with a model loaded, more). Measured on this Mac, 2026-10-12, on the
+previous engine with its residency fix below, 30 mixed single replies a run
 ([`evidence/2026-10-12-lane-parity/`](evidence/2026-10-12-lane-parity/)):
 
 | Streams at 262k | Cache | Wired | Slow replies | Lone driver | Other checks |
@@ -155,13 +171,15 @@ Measured on this Mac, 2026-10-12, with the residency fix below, 30 mixed single 
 when a second arrives) occasionally ran a reply at half speed here, with identical rounds; with it off a single
 request runs the shared rounds (priced drafts) at the same speeds and none was slow, so the default turns it off.
 
-**Residency: every buffer, kept whole** (`FLASHNEXT_RESIDENCY=all`, the default `extra_env`). A second or two after a
-request macOS unwires an idle process's GPU memory and may compress or drop it; the next request then waits while it
-comes back (MTPLX's scheduler notes the same, ~9 ms a GiB). A residency set and the idle keepalive keep it wired, but
-a set that misses some buffers made rounds that touched both kinds slower, and committing the set mid-request
-stalled one. The engine (fork `7808bee8`) now holds every live Metal buffer: those made or freed during a request
-join or leave the set staged, and the keepalive commits them between requests. `keep_warm` (a day) bounds how long
-after the last request it keeps ticking.
+**Residency.** The current engine keeps its buffers, its sessions' and the tower's in one residency set (#606's) that
+the idle keepalive keeps wired; the slow-reply runs above and the idle table below were not repeated on it. The previous
+engine's account follows. **Every buffer, kept whole** (`FLASHNEXT_RESIDENCY=all`, then the default `extra_env`). A
+second or two after a request macOS unwires an idle process's GPU memory and may compress or drop it; the next request
+then waits while it comes back (MTPLX's scheduler notes the same, ~9 ms a GiB). A residency set and the idle keepalive
+keep it wired, but a set that misses some buffers made rounds that touched both kinds slower, and committing the set
+mid-request stalled one. The engine (fork `7808bee8`) now holds every live Metal buffer: those made or freed during a
+request join or leave the set staged, and the keepalive commits them between requests. `keep_warm` (a day) bounds how
+long after the last request it keeps ticking.
 
 | One stream at 262k, macOS defaults | Decode, 30 mixed replies | First token after 10-30 s idle | After 5 min idle | 25k-token prompt after 60 s idle |
 |---|---|---|---|---|
@@ -238,7 +256,7 @@ As the text-only sibling's, plus:
 | Setting | Default | Notes |
 |---|---|---|
 | `parallel` | 2 | replies at once on the shared lane path; 1 the single-reply driver; within the GPU budget |
-| `context` | 262144 | the trained window; up to 1048576 with static YaRN x4 for every prompt (see the 1M section) |
+| `context` | 262144 | the trained window, the current engine's most (the 1M window was the previous engine's) |
 | `prompt_cache_gib` | 8 | kept prompt states (about 1 GiB a 32k-token conversation); 0 off, -1 what 70% of RAM leaves |
 | `prompt_cache_over_cap` | true | `--prompt-cache-over-cap`: the cache may pass the engine's 70% share |
 | `gpu_headroom_gib` | 12 | GPU memory kept for other apps; `validate` and `up` refuse settings past the budget |
@@ -255,8 +273,9 @@ As the text-only sibling's, plus:
 - No image or video URLs (data URLs only), no grammars, no audio.
 - Without a `seed`, a sampled request's seed comes from its prompt (TensorFold's design), so the same request gives
   the same reply; send a `seed` for a different one.
-- Past 262,144 tokens only with `context = 1048576`, one stream at a time (see the 1M section).
-- Image prompts are read whole and never kept by the prompt cache; `--learn` needs `parallel = 1`.
+- Nothing past 262,144 tokens: the current engine has no 1M window (see the 1M section).
+- A turn that adds an image reads its prompt again (follow-ups with the same images resume); `--learn` needs
+  `parallel = 1`. WebP images are refused (PNG and JPEG only).
 - Past 2,048 tokens the sparse indexer scores blocks before the last image's end at their slot positions, not their
   multimodal ones (selection only; the long-context image checks pass with it).
 

@@ -10,8 +10,8 @@ served_name = "Qwen3.8-Flash-Next-MLX-6bit"
 same_as = ""
 
 [engine]
-tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-lane-parity branch (not upstream yet)
-tensorfold_sha = "7808bee8f9bd7650a4ec33dd0268418829643bfc"     # flashnext-lane-parity: add3da3 + top_k 0 sampler + a residency set kept whole
+tensorfold_repo = "https://github.com/BobClawblaw/TensorFold.git"   # the flashnext-shared-vision branch (upstream PR #986)
+tensorfold_sha = "8a509ab5510159b7b88a2ff0e828899a28b3bf79"     # PR #986 on #606: main's engine, images and video, image chats cached
 tensorfold_src = "~/github/TensorFold"   # a checkout holding the sha; `build` adds a worktree at it under tf_cache
 zig = "~/.local/zig/zig"                 # Zig 0.17.0 (.zig-version in the checkout)
 zig_cpu = "apple_m1"
@@ -28,8 +28,7 @@ request_log = ""                         # a file for TENSORFOLD_REQUEST_LOG; em
 
 [serve]
 profile = "chat"                 # chat (MTP drafts, the default) | reference (--no-drafts, the exactness reference)
-# the window: the checkpoint's trained 262,144, plain rotary. Up to 1,048,576 works (static YaRN x4 on every prompt, slot 0
-# alone holds it) but leaves no memory for the prompt cache and costs short prompts a little: see the README
+# the window: the checkpoint's trained 262,144, plain rotary, the pinned engine's most (no YaRN; the README's 1M section)
 context = 262144
 drafts = true
 thinking = false
@@ -41,7 +40,7 @@ keep_warm = 86400                # seconds after a request the idle keepalive (a
 learn = false                    # shared prefixes (a system prompt and its tools) kept on disk across restarts (--learn, v1.0.7)
 learn_dir = ""                   # where learned states live; empty: the engine's default
 learn_gib = 0                    # their budget; 0: the engine's default
-vision = true                    # image input (image_url parts: data URLs; PNG, JPEG and what ImageIO decodes)
+vision = true                    # image input (image_url parts: data URLs; PNG and JPEG)
 vision_image_tokens = 4096       # image tokens a request may hold in all (a 2000x1500 photo takes 2,914)
 vision_max_images = 4            # images a request may hold
 video = true                     # video input (video_url parts): builds libtfvideo over a static FFmpeg 9.0.2 once
@@ -53,7 +52,7 @@ compact_at = ""                  # "" off | "auto" | a fraction, see TensorFold'
 dashboard = true                 # /dashboard and /stats
 api_key = ""
 extra_args = ""
-extra_env = "FLASHNEXT_RESIDENCY=all FLASHNEXT_NO_LONE=1"   # every buffer held, changes committed between requests; no lone driver (README)
+extra_env = "FLASHNEXT_NO_LONE=1"   # no lone driver (README); the engine holds its buffers itself
 memory_margin_gib = 8            # `up` refuses when free memory is under the engine's floor plus this
 gpu_headroom_gib = 12            # GPU memory kept for other apps (an idle ComfyUI holds 8): `up` refuses past the GPU budget
 

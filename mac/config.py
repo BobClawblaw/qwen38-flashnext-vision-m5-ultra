@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROFILES = ("chat", "reference")
 TRAINED_CONTEXT = 262144             # the checkpoint's max_position_embeddings
-MAX_CONTEXT = 4 * TRAINED_CONTEXT     # past it the engine rotates with static YaRN x4
+MAX_CONTEXT = TRAINED_CONTEXT         # the pinned engine has no YaRN: the trained window is its most
 # GPU memory, measured on the M5 Ultra (2026-10-12): the loaded engine without its session (weights, buffers, tower),
 # the tower alone, and one 262,144-token session's caches (each stream holds one, the engine's own included)
 ENGINE_GIB = 153.5
@@ -112,6 +112,11 @@ class Settings:
     def built_video(self) -> Path:
         """libtfvideo, which the server loads beside its binary (../lib) on the first video request."""
         return self.build_dir / "zig-out" / "native" / "lib" / "libtfvideo.dylib"
+
+    @property
+    def built_jpeg(self) -> Path:
+        """libturbojpeg, which the server loads from ../lib beside its binary at the first JPEG."""
+        return self.build_dir / "zig-out" / "native" / "lib" / "libturbojpeg.0.dylib"
 
     @property
     def run_binary(self) -> Path:
@@ -281,8 +286,8 @@ def validate(s: Settings) -> None:
         if not lo <= v <= hi:
             raise ConfigError(f"{name}={v} is outside [{lo}, {hi}]")
     if not 256 <= s.context <= MAX_CONTEXT:
-        raise ConfigError(f"context={s.context} must be in [256, {MAX_CONTEXT}]: the engine reaches four times the trained "
-                          "window with static YaRN x4")
+        raise ConfigError(f"context={s.context} must be in [256, {MAX_CONTEXT}]: the pinned engine reads the trained "
+                          "window only (the 1M window was the previous engine's; see the README)")
     if s.context % 256:
         raise ConfigError(f"context={s.context} must be a multiple of 256")
     for name in ("revision", "tensorfold_sha", "spark_recipe_sha"):
@@ -296,10 +301,6 @@ def validate(s: Settings) -> None:
         raise ConfigError(f"temperature={s.temperature!r} must be a decimal such as 0 or 0.7, or empty for the checkpoint's")
     if s.compact_at and s.compact_at != "auto" and not re.fullmatch(r"0?\.[0-9]+|1(\.0+)?", s.compact_at):
         raise ConfigError(f"compact_at={s.compact_at!r} must be empty, auto or a fraction in (0, 1]")
-    if s.context > TRAINED_CONTEXT and s.parallel > 1 and s.prompt_cache_gib > 0 and s.prompt_cache_over_cap:
-        raise ConfigError(f"context={s.context} with parallel={s.parallel} leaves no memory for prompt_cache_gib="
-                          f"{s.prompt_cache_gib}: slot 0's window and the cache would reach ~246 GiB of 256; set "
-                          "prompt_cache_gib = 0 with the 1M window (see the README's 1M section)")
     if s.parallel > 1 and s.learn:
         raise ConfigError("learn=true needs parallel=1: the shared sessions keep no learned states yet")
     if s.learn_dir and not s.learn:

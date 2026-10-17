@@ -15,11 +15,8 @@ For the agent that manages this Mac (Hermes) and for anyone else. Written 2026-1
   two models cannot share the 256 GB at once. This server keeps about 189 GiB wired with its cache full, leaving
   ~41 GiB: an idle ComfyUI (8 GB) fits beside it, a second model does not. Past its budget `mac up` refuses.
 - Two requests run at once; a third waits. Each holds up to 262,144 tokens; a longer prompt gets a 400.
-- A 1M window needs a raised `iogpu.wired_limit_mb` (its 30 GiB session passes the GPU budget) and `prompt_cache_gib = 0`; it is
-  worse for everyday use: no prompt cache, so agent loops reread everything (~20 s a call at 59k tokens); static YaRN
-  x4 on every prompt (slightly lower scores); one long stream at a time. The README's "The 1M window and its problems"
-  has the details. `python3 -m mac validate` refuses 1M with the cache on: together they would fill the RAM.
-- Endpoint: `http://192.168.5.178:8888/v1` (LAN) or `http://127.0.0.1:8888/v1`. OpenAI-compatible chat, completions
+- No 1M window: the current engine reads the trained 262,144 tokens at most, and `python3 -m mac validate` refuses more.
+- Endpoint: `http://<this Mac's LAN address>:8888/v1` or `http://127.0.0.1:8888/v1`. OpenAI-compatible chat, completions
   and Responses, plus Anthropic Messages. No API key: the LAN is trusted. Any model name is accepted; `/v1/models`
   lists `Qwen3.8-Flash-Next-MLX-6bit`.
 - Sampling works: a request's `temperature` (with `top_p`, `top_k`, `min_p`, `seed`) is honored; a request without
@@ -66,7 +63,7 @@ Boot the agent out first, then use `up`/`down` by hand if needed.
 - Settings live in `recipe.toml` (defaults) and `local.toml` (this Mac: host 0.0.0.0, port 8888). After a change,
   `python3 -m mac restart`: it waits until no request is in flight, so no reply or tool call is cut off (a bare
   kickstart did that several times on 2026-10-12; `--timeout` and `--force` bound the wait).
-- The engine is pinned by commit (`tensorfold_sha`, BobClawblaw/TensorFold branch `flashnext-sampling`) and built into
+- The engine is pinned by commit (`tensorfold_sha`, BobClawblaw/TensorFold branch `flashnext-shared-vision`, upstream PR #986) and built into
   `~/.cache/tensorfold-qwen38-vision/engine/<sha>`. To upgrade: set the new sha, `python3 -m mac build`, `python3 -m mac restart`,
   then run the image gate and `python3 -m mac ruler -- --runs 3` before trusting it.
 - Text only (no tower, 1.7 GiB less): set `vision = false` in `local.toml` and `python3 -m mac restart`.
