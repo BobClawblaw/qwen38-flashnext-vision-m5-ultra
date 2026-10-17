@@ -118,7 +118,7 @@ rotary (the text-only sibling, [qwen38-flashnext-mlx6bit-m5-ultra](https://githu
 | four streams together equal each alone | 12/12 | 12/12 |
 | streaming, multi-turn, stop, thinking, copy, max_tokens | all pass | all pass |
 | tool calls | 56/60 | 59/60 |
-| JSON mode | 30/30 | 30/30 |
+| JSON mode (asked in the prompt) | 30/30 | 30/30 |
 | IFEval loose / strict | 132 / 124 | 134 / 128 |
 | GSM8K | 241/250 | 242/250 |
 
@@ -270,7 +270,10 @@ As the text-only sibling's, plus:
 
 ## Not supported
 
-- No image or video URLs (data URLs only), no grammars, no audio.
+- No image or video URLs (data URLs only), no audio.
+- No constrained output: `response_format` (`json_object`, `json_schema`), the `guided_*` fields and grammars are
+  refused with a 400 (the recipe harness's structured check, 0/18 on `8a509ab5` and `7808bee8` alike). Ask for JSON
+  in the prompt instead (the suite's JSON mode above, 30/30, is that).
 - Without a `seed`, a sampled request's seed comes from its prompt (TensorFold's design), so the same request gives
   the same reply; send a `seed` for a different one.
 - Nothing past 262,144 tokens: the current engine has no 1M window (see the 1M section).

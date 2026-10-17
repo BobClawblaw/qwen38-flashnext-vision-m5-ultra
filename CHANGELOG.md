@@ -15,6 +15,8 @@
 - No 1M window: the engine has no YaRN, so `mac validate` refuses `context` past 262,144. `extra_env` drops
   `FLASHNEXT_RESIDENCY=all` (the engine holds its buffers itself).
 - The quality suite was not rerun on this engine.
+- README: constrained output (`response_format`, `guided_*`, grammars) is listed as not supported; the engine answers it
+  with a 400, as the previous one did (the recipe harness's structured check, 0/18 on both).
 
 ## 2026-10-12 (graceful restart)
 
