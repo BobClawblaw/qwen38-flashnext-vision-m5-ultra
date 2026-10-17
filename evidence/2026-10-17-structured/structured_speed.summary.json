@@ -1,0 +1,29 @@
+{
+ "ok": null,
+ "summary": "json_schema c=1 off/on 193.5/206.3 (undrafted 91.8), c=2 total 253.1/262.8, plain beside plain/grammar 124.7/128.8 tok/s; json_object c=1 off/on 184.4/179.8 (undrafted 93.1), c=2 total 239.1/236.4, plain beside plain/grammar 113.8/123.4 tok/s",
+ "metrics": {
+  "json_schema": {
+   "c1_off": 193.5,
+   "c1_on": 206.3,
+   "c1_on_undrafted": 91.8,
+   "c2_off_total": 253.1,
+   "c2_on_total": 262.8,
+   "c2_plain_beside_plain": 124.7,
+   "c2_plain_beside_on": 128.8,
+   "tokens_on": 491
+  },
+  "json_object": {
+   "c1_off": 184.4,
+   "c1_on": 179.8,
+   "c1_on_undrafted": 93.1,
+   "c2_off_total": 239.1,
+   "c2_on_total": 236.4,
+   "c2_plain_beside_plain": 113.8,
+   "c2_plain_beside_on": 123.4,
+   "tokens_on": 407
+  }
+ },
+ "name": "structured_speed",
+ "type": "structured_speed",
+ "seconds": 42.8
+}

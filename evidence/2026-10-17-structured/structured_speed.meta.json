@@ -1,0 +1,36 @@
+{
+ "target": "qwen38-flashnext-vision-m5",
+ "plan": "fn-grammar-speed",
+ "url": "http://127.0.0.1:8888",
+ "model": "Qwen3.8-Flash-Next-MLX-6bit",
+ "started": "20261017-093813",
+ "status": "done",
+ "checks": [
+  {
+   "name": "structured_speed",
+   "type": "structured_speed",
+   "ok": null,
+   "summary": "json_schema c=1 off/on 193.5/206.3 (undrafted 91.8), c=2 total 253.1/262.8, plain beside plain/grammar 124.7/128.8 tok/s; json_object c=1 off/on 184.4/179.8 (undrafted 93.1), c=2 total 239.1/236.4, plain beside plain/grammar 113.8/123.4 tok/s",
+   "seconds": 42.8
+  }
+ ],
+ "identity": {
+  "engine_commit": {
+   "value": "8e4ba6db",
+   "exit": 0
+  },
+  "binary_sha256": {
+   "value": "d6b9a33d238bd53d86b916ff81f16024172f87a939fd1ae98b0f33e2b4dd340b",
+   "exit": 0
+  },
+  "served_model": {
+   "value": "{\"object\": \"list\", \"data\": [{\"id\": \"Qwen3.8-Flash-Next-MLX-6bit\", \"object\": \"model\", \"created\": 1792247893, \"owned_by\": \"tensorfold\", \"context_length\": 262112, \"max_model_len\": 262112, \"reasoning\": {\"default_enabled\": false, \"supported_efforts\": [\"xhigh\", \"medium\", \"low\", \"none\"]}}]}",
+   "exit": 0
+  },
+  "chip": {
+   "value": "Apple M5 Ultra\n274877906944",
+   "exit": 0
+  }
+ },
+ "finished": "20261017-093856"
+}

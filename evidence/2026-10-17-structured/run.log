@@ -1,0 +1,15 @@
+2026-10-17T12:44:09 run 20261017-124409-fn-structured: target qwen38-flashnext-vision-m5, plan fn-structured, restart True
+2026-10-17T12:44:09 lock taken: ~/github/recipe-harness/runs/.locks/qwen38-flashnext-vision-m5.lock
+2026-10-17T12:44:09 down (exit 0): [12:44:09] not running
+2026-10-17T12:44:47 up 1/1 (exit 0): [12:44:09] Waiting for http://0.0.0.0:8888/v1/models (log: ~/.cache/tensorfold-qwen38-vision/server.log)
+[12:44:47] Ready in 38s: http://0.0.0.0:8888/v1 serves Qwen3.8-Flash-Next-MLX-6bit
+2026-10-17T12:44:47 healthy: http://127.0.0.1:8888
+2026-10-17T12:44:47 identity engine_commit: 8e4ba6db
+2026-10-17T12:44:48 identity binary_sha256: d6b9a33d238bd53d86b916ff81f16024172f87a939fd1ae98b0f33e2b4dd340b
+2026-10-17T12:44:48 identity served_model: {"object": "list", "data": [{"id": "Qwen3.8-Flash-Next-MLX-6bit", "object": "model", "created": 1792259088, "owned_by": 
+2026-10-17T12:44:48 identity chip: Apple M5 Ultra
+274877906944
+2026-10-17T12:44:48 check structured
+2026-10-17T12:45:03 PASS structured: 18/18 obey, drafted == plain 12/12; a bad regex -> 400
+2026-10-17T12:45:03 lock released
+2026-10-17T12:45:03 run done: ~/github/recipe-harness/runs/qwen38-flashnext-vision-m5/20261017-124409-fn-structured

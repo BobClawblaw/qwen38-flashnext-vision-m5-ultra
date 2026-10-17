@@ -1,0 +1,314 @@
+{
+ "json_schema": {
+  "metrics": {
+   "c1_off": 193.5,
+   "c1_on": 206.3,
+   "c1_on_undrafted": 91.8,
+   "c2_off_total": 253.1,
+   "c2_on_total": 262.8,
+   "c2_plain_beside_plain": 124.7,
+   "c2_plain_beside_on": 128.8,
+   "tokens_on": 491
+  },
+  "one": {
+   "off": {
+    "status": 200,
+    "text": "```json\n[\n  {\n    \"name\": \"Alice Johnson\",\n    \"age\": 28,\n    \"hobbies\": [\"reading\", \"hiking\", \"photography\"]\n  },\n  {\n    \"name\": \"Bob Smith\",\n    \"age\": 35,\n    \"hobbies\": [\"cooking\", \"gardening\"]\n  },\n  {\n    \"name\": \"Charlie Brown\",\n    \"age\": 42,\n    \"hobbies\": [\"cycling\", \"chess\", \"painting\"]\n  },\n  {\n    \"name\": \"Diana Prince\",\n    \"age\": 29,\n    \"hobbies\": [\"yoga\", \"traveling\"]\n  },\n  {\n    \"name\": \"Edward Norton\",\n    \"age\": 51,\n    \"hobbies\": [\"fishing\", \"woodworking\", \"birdwatching\"]\n  },\n  {\n    \"name\": \"Fiona Apple\",\n    \"age\": 24,\n    \"hobbies\": [\"singing\", \"dancing\"]\n  },\n  {\n    \"name\": \"George Lucas\",\n    \"age\": 60,\n    \"hobbies\": [\"film making\", \"model building\", \"astronomy\"]\n  },\n  {\n    \"name\": \"Hannah Montana\",\n    \"age\": 19,\n    \"hobbies\": [\"skateboarding\", \"music production\"]\n  },\n  {\n    \"name\": \"Ian Malcolm\",\n    \"age\": 45,\n    \"hobbies\": [\"math puzzles\", \"running\", \"sci-fi reading\"]\n  },\n  {\n    \"name\": \"Julia Roberts\",\n    \"age\": 33,\n    \"hobbies\": [\"acting\", \"volunteering\"]\n  },\n  {\n    \"name\": \"Kevin Hart\",\n    \"age\": 38,\n    \"hobbies\": [\"stand-up comedy\", \"basketball\", \"podcasting\"]\n  },\n  {\n    \"name\": \"Laura Palmer\",\n    \"age\": 27,\n    \"hobbies\": [\"baking\", \"knitting\", \"journaling\"]\n  }\n]\n```",
+    "ttft": 0.151,
+    "usage": {
+     "prompt_tokens": 34,
+     "completion_tokens": 499,
+     "total_tokens": 533,
+     "prompt_tokens_details": {
+      "cached_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0
+     }
+    },
+    "s": 2.725
+   },
+   "on": {
+    "status": 200,
+    "text": "[\n  {\n    \"name\": \"Alice Johnson\",\n    \"age\": 28,\n    \"hobbies\": [\"Reading\", \"Hiking\", \"Photography\"]\n  },\n  {\n    \"name\": \"Bob Smith\",\n    \"age\": 35,\n    \"hobbies\": [\"Gaming\", \"Cooking\"]\n  },\n  {\n    \"name\": \"Charlie Brown\",\n    \"age\": 42,\n    \"hobbies\": [\"Gardening\", \"Painting\", \"Chess\"]\n  },\n  {\n    \"name\": \"Diana Prince\",\n    \"age\": 29,\n    \"hobbies\": [\"Yoga\", \"Running\"]\n  },\n  {\n    \"name\": \"Edward Norton\",\n    \"age\": 51,\n    \"hobbies\": [\"Woodworking\", \"Fishing\", \"History\"]\n  },\n  {\n    \"name\": \"Fiona Apple\",\n    \"age\": 24,\n    \"hobbies\": [\"Singing\", \"Songwriting\"]\n  },\n  {\n    \"name\": \"George Lucas\",\n    \"age\": 60,\n    \"hobbies\": [\"Film Making\", \"Model Building\", \"Sci-Fi\"]\n  },\n  {\n    \"name\": \"Hannah Montana\",\n    \"age\": 19,\n    \"hobbies\": [\"Dancing\", \"Social Media\", \"Fashion\"]\n  },\n  {\n    \"name\": \"Ian Malcolm\",\n    \"age\": 45,\n    \"hobbies\": [\"Mathematics\", \"Puzzles\"]\n  },\n  {\n    \"name\": \"Julia Roberts\",\n    \"age\": 33,\n    \"hobbies\": [\"Acting\", \"Traveling\", \"Wine Tasting\"]\n  },\n  {\n    \"name\": \"Kevin Hart\",\n    \"age\": 38,\n    \"hobbies\": [\"Comedy\", \"Basketball\", \"Podcasting\"]\n  },\n  {\n    \"name\": \"Laura Palmer\",\n    \"age\": 22,\n    \"hobbies\": [\"Journalism\", \"Coffee Brewing\"]\n  }\n]",
+    "ttft": 0.114,
+    "usage": {
+     "prompt_tokens": 34,
+     "completion_tokens": 491,
+     "total_tokens": 525,
+     "prompt_tokens_details": {
+      "cached_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0
+     }
+    },
+    "s": 2.489
+   },
+   "on_undrafted": {
+    "status": 200,
+    "text": "[\n  {\n    \"name\": \"Alice Johnson\",\n    \"age\": 28,\n    \"hobbies\": [\"Reading\", \"Hiking\", \"Photography\"]\n  },\n  {\n    \"name\": \"Bob Smith\",\n    \"age\": 35,\n    \"hobbies\": [\"Gaming\", \"Cooking\"]\n  },\n  {\n    \"name\": \"Charlie Brown\",\n    \"age\": 42,\n    \"hobbies\": [\"Gardening\", \"Painting\", \"Chess\"]\n  },\n  {\n    \"name\": \"Diana Prince\",\n    \"age\": 29,\n    \"hobbies\": [\"Yoga\", \"Running\"]\n  },\n  {\n    \"name\": \"Edward Norton\",\n    \"age\": 51,\n    \"hobbies\": [\"Woodworking\", \"Fishing\", \"History\"]\n  },\n  {\n    \"name\": \"Fiona Apple\",\n    \"age\": 24,\n    \"hobbies\": [\"Singing\", \"Songwriting\"]\n  },\n  {\n    \"name\": \"George Lucas\",\n    \"age\": 60,\n    \"hobbies\": [\"Film Making\", \"Model Building\", \"Sci-Fi\"]\n  },\n  {\n    \"name\": \"Hannah Montana\",\n    \"age\": 19,\n    \"hobbies\": [\"Dancing\", \"Social Media\", \"Fashion\"]\n  },\n  {\n    \"name\": \"Ian Malcolm\",\n    \"age\": 45,\n    \"hobbies\": [\"Mathematics\", \"Puzzles\"]\n  },\n  {\n    \"name\": \"Julia Roberts\",\n    \"age\": 33,\n    \"hobbies\": [\"Acting\", \"Traveling\", \"Wine Tasting\"]\n  },\n  {\n    \"name\": \"Kevin Hart\",\n    \"age\": 38,\n    \"hobbies\": [\"Comedy\", \"Basketball\", \"Podcasting\"]\n  },\n  {\n    \"name\": \"Laura Palmer\",\n    \"age\": 22,\n    \"hobbies\": [\"Journalism\", \"Coffee Brewing\"]\n  }\n]",
+    "ttft": 0.112,
+    "usage": {
+     "prompt_tokens": 34,
+     "completion_tokens": 491,
+     "total_tokens": 525,
+     "prompt_tokens_details": {
+      "cached_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0
+     }
+    },
+    "s": 5.447
+   }
+  },
+  "two": {
+   "off": [
+    {
+     "status": 200,
+     "text": "```json\n[\n  {\n    \"name\": \"Alice Johnson\",\n    \"age\": 28,\n    \"hobbies\": [\"reading\", \"hiking\", \"photography\"]\n  },\n  {\n    \"name\": \"Bob Smith\",\n    \"age\": 35,\n    \"hobbies\": [\"cooking\", \"gardening\"]\n  },\n  {\n    \"name\": \"Charlie Brown\",\n    \"age\": 42,\n    \"hobbies\": [\"cycling\", \"chess\", \"painting\"]\n  },\n  {\n    \"name\": \"Diana Prince\",\n    \"age\": 29,\n    \"hobbies\": [\"yoga\", \"traveling\"]\n  },\n  {\n    \"name\": \"Edward Norton\",\n    \"age\": 51,\n    \"hobbies\": [\"fishing\", \"woodworking\", \"birdwatching\"]\n  },\n  {\n    \"name\": \"Fiona Apple\",\n    \"age\": 24,\n    \"hobbies\": [\"singing\", \"dancing\"]\n  },\n  {\n    \"name\": \"George Lucas\",\n    \"age\": 60,\n    \"hobbies\": [\"film making\", \"model building\", \"astronomy\"]\n  },\n  {\n    \"name\": \"Hannah Montana\",\n    \"age\": 19,\n    \"hobbies\": [\"skateboarding\", \"music production\"]\n  },\n  {\n    \"name\": \"Ian Malcolm\",\n    \"age\": 45,\n    \"hobbies\": [\"math puzzles\", \"running\", \"sci-fi reading\"]\n  },\n  {\n    \"name\": \"Julia Roberts\",\n    \"age\": 33,\n    \"hobbies\": [\"acting\", \"volunteering\"]\n  },\n  {\n    \"name\": \"Kevin Hart\",\n    \"age\": 38,\n    \"hobbies\": [\"stand-up comedy\", \"basketball\", \"podcasting\"]\n  },\n  {\n    \"name\": \"Laura Palmer\",\n    \"age\": 27,\n    \"hobbies\": [\"baking\", \"knitting\", \"journaling\"]\n  }\n]\n```",
+     "ttft": 0.115,
+     "usage": {
+      "prompt_tokens": 34,
+      "completion_tokens": 499,
+      "total_tokens": 533,
+      "prompt_tokens_details": {
+       "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0
+      }
+     },
+     "s": 4.107
+    },
+    {
+     "status": 200,
+     "text": "```json\n[\n  {\n    \"name\": \"Alice Johnson\",\n    \"age\": 28,\n    \"hobbies\": [\"reading\", \"hiking\", \"photography\"]\n  },\n  {\n    \"name\": \"Bob Smith\",\n    \"age\": 35,\n    \"hobbies\": [\"cooking\", \"gardening\"]\n  },\n  {\n    \"name\": \"Charlie Brown\",\n    \"age\": 42,\n    \"hobbies\": [\"cycling\", \"chess\", \"painting\"]\n  },\n  {\n    \"name\": \"Diana Prince\",\n    \"age\": 29,\n    \"hobbies\": [\"yoga\", \"traveling\"]\n  },\n  {\n    \"name\": \"Edward Norton\",\n    \"age\": 51,\n    \"hobbies\": [\"fishing\", \"woodworking\", \"birdwatching\"]\n  },\n  {\n    \"name\": \"Fiona Apple\",\n    \"age\": 24,\n    \"hobbies\": [\"singing\", \"dancing\"]\n  },\n  {\n    \"name\": \"George Lucas\",\n    \"age\": 60,\n    \"hobbies\": [\"film making\", \"model building\", \"astronomy\"]\n  },\n  {\n    \"name\": \"Hannah Montana\",\n    \"age\": 19,\n    \"hobbies\": [\"skateboarding\", \"music production\"]\n  },\n  {\n    \"name\": \"Ian Malcolm\",\n    \"age\": 45,\n    \"hobbies\": [\"math puzzles\", \"running\", \"sci-fi reading\"]\n  },\n  {\n    \"name\": \"Julia Roberts\",\n    \"age\": 33,\n    \"hobbies\": [\"acting\", \"volunteering\"]\n  },\n  {\n    \"name\": \"Kevin Hart\",\n    \"age\": 38,\n    \"hobbies\": [\"stand-up comedy\", \"basketball\", \"podcasting\"]\n  },\n  {\n    \"name\": \"Laura Palmer\",\n    \"age\": 27,\n    \"hobbies\": [\"baking\", \"knitting\", \"journaling\"]\n  }\n]\n```",
+     "ttft": 0.227,
+     "usage": {
+      "prompt_tokens": 34,
+      "completion_tokens": 499,
+      "total_tokens": 533,
+      "prompt_tokens_details": {
+       "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0
+      }
+     },
+     "s": 4.107
+    }
+   ],
+   "on": [
+    {
+     "status": 200,
+     "text": "[\n  {\n    \"name\": \"Alice Johnson\",\n    \"age\": 28,\n    \"hobbies\": [\"Reading\", \"Hiking\", \"Photography\"]\n  },\n  {\n    \"name\": \"Bob Smith\",\n    \"age\": 35,\n    \"hobbies\": [\"Gaming\", \"Cooking\"]\n  },\n  {\n    \"name\": \"Charlie Brown\",\n    \"age\": 42,\n    \"hobbies\": [\"Gardening\", \"Painting\", \"Chess\"]\n  },\n  {\n    \"name\": \"Diana Prince\",\n    \"age\": 29,\n    \"hobbies\": [\"Yoga\", \"Running\"]\n  },\n  {\n    \"name\": \"Edward Norton\",\n    \"age\": 51,\n    \"hobbies\": [\"Woodworking\", \"Fishing\", \"History\"]\n  },\n  {\n    \"name\": \"Fiona Apple\",\n    \"age\": 24,\n    \"hobbies\": [\"Singing\", \"Songwriting\"]\n  },\n  {\n    \"name\": \"George Lucas\",\n    \"age\": 60,\n    \"hobbies\": [\"Film Making\", \"Model Building\", \"Sci-Fi\"]\n  },\n  {\n    \"name\": \"Hannah Montana\",\n    \"age\": 19,\n    \"hobbies\": [\"Dancing\", \"Social Media\", \"Fashion\"]\n  },\n  {\n    \"name\": \"Ian Malcolm\",\n    \"age\": 45,\n    \"hobbies\": [\"Mathematics\", \"Puzzles\"]\n  },\n  {\n    \"name\": \"Julia Roberts\",\n    \"age\": 33,\n    \"hobbies\": [\"Acting\", \"Traveling\", \"Wine Tasting\"]\n  },\n  {\n    \"name\": \"Kevin Hart\",\n    \"age\": 38,\n    \"hobbies\": [\"Comedy\", \"Basketball\", \"Podcasting\"]\n  },\n  {\n    \"name\": \"Laura Palmer\",\n    \"age\": 22,\n    \"hobbies\": [\"Journalism\", \"Coffee Brewing\"]\n  }\n]",
+     "ttft": 0.115,
+     "usage": {
+      "prompt_tokens": 34,
+      "completion_tokens": 491,
+      "total_tokens": 525,
+      "prompt_tokens_details": {
+       "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0
+      }
+     },
+     "s": 3.901
+    },
+    {
+     "status": 200,
+     "text": "[\n  {\n    \"name\": \"Alice Johnson\",\n    \"age\": 28,\n    \"hobbies\": [\"Reading\", \"Hiking\", \"Photography\"]\n  },\n  {\n    \"name\": \"Bob Smith\",\n    \"age\": 35,\n    \"hobbies\": [\"Gaming\", \"Cooking\"]\n  },\n  {\n    \"name\": \"Charlie Brown\",\n    \"age\": 42,\n    \"hobbies\": [\"Gardening\", \"Painting\", \"Chess\"]\n  },\n  {\n    \"name\": \"Diana Prince\",\n    \"age\": 29,\n    \"hobbies\": [\"Yoga\", \"Running\"]\n  },\n  {\n    \"name\": \"Edward Norton\",\n    \"age\": 51,\n    \"hobbies\": [\"Woodworking\", \"Fishing\", \"History\"]\n  },\n  {\n    \"name\": \"Fiona Apple\",\n    \"age\": 24,\n    \"hobbies\": [\"Singing\", \"Songwriting\"]\n  },\n  {\n    \"name\": \"George Lucas\",\n    \"age\": 60,\n    \"hobbies\": [\"Film Making\", \"Model Building\", \"Sci-Fi\"]\n  },\n  {\n    \"name\": \"Hannah Montana\",\n    \"age\": 19,\n    \"hobbies\": [\"Dancing\", \"Social Media\", \"Fashion\"]\n  },\n  {\n    \"name\": \"Ian Malcolm\",\n    \"age\": 45,\n    \"hobbies\": [\"Mathematics\", \"Puzzles\"]\n  },\n  {\n    \"name\": \"Julia Roberts\",\n    \"age\": 33,\n    \"hobbies\": [\"Acting\", \"Traveling\", \"Wine Tasting\"]\n  },\n  {\n    \"name\": \"Kevin Hart\",\n    \"age\": 38,\n    \"hobbies\": [\"Comedy\", \"Basketball\", \"Podcasting\"]\n  },\n  {\n    \"name\": \"Laura Palmer\",\n    \"age\": 22,\n    \"hobbies\": [\"Journalism\", \"Coffee Brewing\"]\n  }\n]",
+     "ttft": 0.228,
+     "usage": {
+      "prompt_tokens": 34,
+      "completion_tokens": 491,
+      "total_tokens": 525,
+      "prompt_tokens_details": {
+       "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0
+      }
+     },
+     "s": 3.901
+    }
+   ],
+   "plain_beside_on": {
+    "status": 200,
+    "text": "```json\n[\n  {\n    \"name\": \"Alice Johnson\",\n    \"age\": 28,\n    \"hobbies\": [\"reading\", \"hiking\", \"photography\"]\n  },\n  {\n    \"name\": \"Bob Smith\",\n    \"age\": 35,\n    \"hobbies\": [\"cooking\", \"gardening\"]\n  },\n  {\n    \"name\": \"Charlie Brown\",\n    \"age\": 42,\n    \"hobbies\": [\"cycling\", \"chess\", \"painting\"]\n  },\n  {\n    \"name\": \"Diana Prince\",\n    \"age\": 29,\n    \"hobbies\": [\"yoga\", \"traveling\"]\n  },\n  {\n    \"name\": \"Edward Norton\",\n    \"age\": 51,\n    \"hobbies\": [\"fishing\", \"woodworking\", \"birdwatching\"]\n  },\n  {\n    \"name\": \"Fiona Apple\",\n    \"age\": 24,\n    \"hobbies\": [\"singing\", \"dancing\"]\n  },\n  {\n    \"name\": \"George Lucas\",\n    \"age\": 60,\n    \"hobbies\": [\"film making\", \"model building\", \"astronomy\"]\n  },\n  {\n    \"name\": \"Hannah Montana\",\n    \"age\": 19,\n    \"hobbies\": [\"skateboarding\", \"music production\"]\n  },\n  {\n    \"name\": \"Ian Malcolm\",\n    \"age\": 45,\n    \"hobbies\": [\"math puzzles\", \"running\", \"sci-fi reading\"]\n  },\n  {\n    \"name\": \"Julia Roberts\",\n    \"age\": 33,\n    \"hobbies\": [\"acting\", \"volunteering\"]\n  },\n  {\n    \"name\": \"Kevin Hart\",\n    \"age\": 38,\n    \"hobbies\": [\"stand-up comedy\", \"basketball\", \"podcasting\"]\n  },\n  {\n    \"name\": \"Laura Palmer\",\n    \"age\": 27,\n    \"hobbies\": [\"baking\", \"knitting\", \"journaling\"]\n  }\n]\n```",
+    "ttft": 0.115,
+    "usage": {
+     "prompt_tokens": 34,
+     "completion_tokens": 499,
+     "total_tokens": 533,
+     "prompt_tokens_details": {
+      "cached_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0
+     }
+    },
+    "s": 3.982
+   }
+  }
+ },
+ "json_object": {
+  "metrics": {
+   "c1_off": 184.4,
+   "c1_on": 179.8,
+   "c1_on_undrafted": 93.1,
+   "c2_off_total": 239.1,
+   "c2_on_total": 236.4,
+   "c2_plain_beside_plain": 113.8,
+   "c2_plain_beside_on": 123.4,
+   "tokens_on": 407
+  },
+  "one": {
+   "off": {
+    "status": 200,
+    "text": "{\n  \"Paris\": {\n    \"country\": \"France\",\n    \"population\": 2148271,\n    \"famous_sight\": \"Eiffel Tower\",\n    \"history\": \"Originally a Roman settlement known as Lutetia, Paris grew into a major European capital and cultural hub during the Middle Ages and the Renaissance.\"\n  },\n  \"London\": {\n    \"country\": \"United Kingdom\",\n    \"population\": 8982000,\n    \"famous_sight\": \"Big Ben\",\n    \"history\": \"Founded by the Romans as Londinium, London evolved into the heart of the British Empire and remains a global financial and cultural center.\"\n  },\n  \"Rome\": {\n    \"country\": \"Italy\",\n    \"population\": 2872800,\n    \"famous_sight\": \"Colosseum\",\n    \"history\": \"As the capital of the Roman Empire, Rome was the center of Western civilization for centuries and later became the spiritual home of the Catholic Church.\"\n  },\n  \"Berlin\": {\n    \"country\": \"Germany\",\n    \"population\": 3644826,\n    \"famous_sight\": \"Brandenburg Gate\",\n    \"history\": \"Once divided by the Berlin Wall during the Cold War, Berlin was reunified in 1990 and has since become a vibrant symbol of European unity and modern culture.\"\n  },\n  \"Madrid\": {\n    \"country\": \"Spain\",\n    \"population\": 3223334,\n    \"famous_sight\": \"Royal Palace of Madrid\",\n    \"history\": \"Established as the capital of Spain in 1561 by King Philip II, Madrid grew from a small fortress town into a major political and artistic center.\"\n  }\n}",
+    "ttft": 0.117,
+    "usage": {
+     "prompt_tokens": 39,
+     "completion_tokens": 407,
+     "total_tokens": 446,
+     "prompt_tokens_details": {
+      "cached_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0
+     }
+    },
+    "s": 2.319
+   },
+   "on": {
+    "status": 200,
+    "text": "{\n  \"Paris\": {\n    \"country\": \"France\",\n    \"population\": 2148271,\n    \"famous_sight\": \"Eiffel Tower\",\n    \"history\": \"Originally a Roman settlement known as Lutetia, Paris grew into a major European capital and cultural hub during the Middle Ages and the Renaissance.\"\n  },\n  \"London\": {\n    \"country\": \"United Kingdom\",\n    \"population\": 8982000,\n    \"famous_sight\": \"Big Ben\",\n    \"history\": \"Founded by the Romans as Londinium, London evolved into the heart of the British Empire and remains a global financial and cultural center.\"\n  },\n  \"Rome\": {\n    \"country\": \"Italy\",\n    \"population\": 2872800,\n    \"famous_sight\": \"Colosseum\",\n    \"history\": \"As the capital of the Roman Empire, Rome was the center of Western civilization for centuries and later became the spiritual home of the Catholic Church.\"\n  },\n  \"Berlin\": {\n    \"country\": \"Germany\",\n    \"population\": 3644826,\n    \"famous_sight\": \"Brandenburg Gate\",\n    \"history\": \"Once divided by the Berlin Wall during the Cold War, Berlin was reunified in 1990 and has since become a vibrant symbol of European unity and modern culture.\"\n  },\n  \"Madrid\": {\n    \"country\": \"Spain\",\n    \"population\": 3223334,\n    \"famous_sight\": \"Royal Palace of Madrid\",\n    \"history\": \"Established as the capital of Spain in 1561 by King Philip II, Madrid grew from a small fortress town into a major political and artistic center.\"\n  }\n}",
+    "ttft": 0.119,
+    "usage": {
+     "prompt_tokens": 39,
+     "completion_tokens": 407,
+     "total_tokens": 446,
+     "prompt_tokens_details": {
+      "cached_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0
+     }
+    },
+    "s": 2.377
+   },
+   "on_undrafted": {
+    "status": 200,
+    "text": "{\n  \"Paris\": {\n    \"country\": \"France\",\n    \"population\": 2148271,\n    \"famous_sight\": \"Eiffel Tower\",\n    \"history\": \"Originally a Roman settlement known as Lutetia, Paris grew into a major European capital and cultural hub during the Middle Ages and the Renaissance.\"\n  },\n  \"London\": {\n    \"country\": \"United Kingdom\",\n    \"population\": 8982000,\n    \"famous_sight\": \"Big Ben\",\n    \"history\": \"Founded by the Romans as Londinium, London evolved into the heart of the British Empire and remains a global financial and cultural center.\"\n  },\n  \"Rome\": {\n    \"country\": \"Italy\",\n    \"population\": 2872800,\n    \"famous_sight\": \"Colosseum\",\n    \"history\": \"As the capital of the Roman Empire, Rome was the center of Western civilization for centuries and later became the spiritual home of the Catholic Church.\"\n  },\n  \"Berlin\": {\n    \"country\": \"Germany\",\n    \"population\": 3644826,\n    \"famous_sight\": \"Brandenburg Gate\",\n    \"history\": \"Once divided by the Berlin Wall during the Cold War, Berlin was reunified in 1990 and has since become a vibrant symbol of European unity and modern culture.\"\n  },\n  \"Madrid\": {\n    \"country\": \"Spain\",\n    \"population\": 3223334,\n    \"famous_sight\": \"Royal Palace of Madrid\",\n    \"history\": \"Established as the capital of Spain in 1561 by King Philip II, Madrid grew from a small fortress town into a major political and artistic center.\"\n  }\n}",
+    "ttft": 0.114,
+    "usage": {
+     "prompt_tokens": 39,
+     "completion_tokens": 407,
+     "total_tokens": 446,
+     "prompt_tokens_details": {
+      "cached_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0
+     }
+    },
+    "s": 4.474
+   }
+  },
+  "two": {
+   "off": [
+    {
+     "status": 200,
+     "text": "{\n  \"Paris\": {\n    \"country\": \"France\",\n    \"population\": 2148271,\n    \"famous_sight\": \"Eiffel Tower\",\n    \"history\": \"Originally a Roman settlement known as Lutetia, Paris grew into a major European capital and cultural hub during the Middle Ages and the Renaissance.\"\n  },\n  \"London\": {\n    \"country\": \"United Kingdom\",\n    \"population\": 8982000,\n    \"famous_sight\": \"Big Ben\",\n    \"history\": \"Founded by the Romans as Londinium, London evolved into the heart of the British Empire and remains a global financial and cultural center.\"\n  },\n  \"Rome\": {\n    \"country\": \"Italy\",\n    \"population\": 2872800,\n    \"famous_sight\": \"Colosseum\",\n    \"history\": \"As the capital of the Roman Empire, Rome was the center of Western civilization for centuries and later became the spiritual home of the Catholic Church.\"\n  },\n  \"Berlin\": {\n    \"country\": \"Germany\",\n    \"population\": 3644826,\n    \"famous_sight\": \"Brandenburg Gate\",\n    \"history\": \"Once divided by the Berlin Wall during the Cold War, Berlin was reunified in 1990 and has since become a vibrant symbol of European unity and modern culture.\"\n  },\n  \"Madrid\": {\n    \"country\": \"Spain\",\n    \"population\": 3223334,\n    \"famous_sight\": \"Royal Palace of Madrid\",\n    \"history\": \"Established as the capital of Spain in 1561 by King Philip II, Madrid grew from a small fortress town into a major political and artistic center.\"\n  }\n}",
+     "ttft": 0.116,
+     "usage": {
+      "prompt_tokens": 39,
+      "completion_tokens": 407,
+      "total_tokens": 446,
+      "prompt_tokens_details": {
+       "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0
+      }
+     },
+     "s": 3.683
+    },
+    {
+     "status": 200,
+     "text": "{\n  \"Paris\": {\n    \"country\": \"France\",\n    \"population\": 2148271,\n    \"famous_sight\": \"Eiffel Tower\",\n    \"history\": \"Originally a Roman settlement known as Lutetia, Paris grew into a major European capital and cultural hub during the Middle Ages and the Renaissance.\"\n  },\n  \"London\": {\n    \"country\": \"United Kingdom\",\n    \"population\": 8982000,\n    \"famous_sight\": \"Big Ben\",\n    \"history\": \"Founded by the Romans as Londinium, London evolved into the heart of the British Empire and remains a global financial and cultural center.\"\n  },\n  \"Rome\": {\n    \"country\": \"Italy\",\n    \"population\": 2872800,\n    \"famous_sight\": \"Colosseum\",\n    \"history\": \"As the capital of the Roman Empire, Rome was the center of Western civilization for centuries and later became the spiritual home of the Catholic Church.\"\n  },\n  \"Berlin\": {\n    \"country\": \"Germany\",\n    \"population\": 3644826,\n    \"famous_sight\": \"Brandenburg Gate\",\n    \"history\": \"Once divided by the Berlin Wall during the Cold War, Berlin was reunified in 1990 and has since become a vibrant symbol of European unity and modern culture.\"\n  },\n  \"Madrid\": {\n    \"country\": \"Spain\",\n    \"population\": 3223334,\n    \"famous_sight\": \"Royal Palace of Madrid\",\n    \"history\": \"Established as the capital of Spain in 1561 by King Philip II, Madrid grew from a small fortress town into a major political and artistic center.\"\n  }\n}",
+     "ttft": 0.23,
+     "usage": {
+      "prompt_tokens": 39,
+      "completion_tokens": 407,
+      "total_tokens": 446,
+      "prompt_tokens_details": {
+       "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0
+      }
+     },
+     "s": 3.47
+    }
+   ],
+   "on": [
+    {
+     "status": 200,
+     "text": "{\n  \"Paris\": {\n    \"country\": \"France\",\n    \"population\": 2148271,\n    \"famous_sight\": \"Eiffel Tower\",\n    \"history\": \"Originally a Roman settlement known as Lutetia, Paris grew into a major European capital and cultural hub during the Middle Ages and the Renaissance.\"\n  },\n  \"London\": {\n    \"country\": \"United Kingdom\",\n    \"population\": 8982000,\n    \"famous_sight\": \"Big Ben\",\n    \"history\": \"Founded by the Romans as Londinium, London evolved into the heart of the British Empire and remains a global financial and cultural center.\"\n  },\n  \"Rome\": {\n    \"country\": \"Italy\",\n    \"population\": 2872800,\n    \"famous_sight\": \"Colosseum\",\n    \"history\": \"As the capital of the Roman Empire, Rome was the center of Western civilization for centuries and later became the spiritual home of the Catholic Church.\"\n  },\n  \"Berlin\": {\n    \"country\": \"Germany\",\n    \"population\": 3644826,\n    \"famous_sight\": \"Brandenburg Gate\",\n    \"history\": \"Once divided by the Berlin Wall during the Cold War, Berlin was reunified in 1990 and has since become a vibrant symbol of European unity and modern culture.\"\n  },\n  \"Madrid\": {\n    \"country\": \"Spain\",\n    \"population\": 3223334,\n    \"famous_sight\": \"Royal Palace of Madrid\",\n    \"history\": \"Established as the capital of Spain in 1561 by King Philip II, Madrid grew from a small fortress town into a major political and artistic center.\"\n  }\n}",
+     "ttft": 0.237,
+     "usage": {
+      "prompt_tokens": 39,
+      "completion_tokens": 407,
+      "total_tokens": 446,
+      "prompt_tokens_details": {
+       "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0
+      }
+     },
+     "s": 3.572
+    },
+    {
+     "status": 200,
+     "text": "{\n  \"Paris\": {\n    \"country\": \"France\",\n    \"population\": 2148271,\n    \"famous_sight\": \"Eiffel Tower\",\n    \"history\": \"Originally a Roman settlement known as Lutetia, Paris grew into a major European capital and cultural hub during the Middle Ages and the Renaissance.\"\n  },\n  \"London\": {\n    \"country\": \"United Kingdom\",\n    \"population\": 8982000,\n    \"famous_sight\": \"Big Ben\",\n    \"history\": \"Founded by the Romans as Londinium, London evolved into the heart of the British Empire and remains a global financial and cultural center.\"\n  },\n  \"Rome\": {\n    \"country\": \"Italy\",\n    \"population\": 2872800,\n    \"famous_sight\": \"Colosseum\",\n    \"history\": \"As the capital of the Roman Empire, Rome was the center of Western civilization for centuries and later became the spiritual home of the Catholic Church.\"\n  },\n  \"Berlin\": {\n    \"country\": \"Germany\",\n    \"population\": 3644826,\n    \"famous_sight\": \"Brandenburg Gate\",\n    \"history\": \"Once divided by the Berlin Wall during the Cold War, Berlin was reunified in 1990 and has since become a vibrant symbol of European unity and modern culture.\"\n  },\n  \"Madrid\": {\n    \"country\": \"Spain\",\n    \"population\": 3223334,\n    \"famous_sight\": \"Royal Palace of Madrid\",\n    \"history\": \"Established as the capital of Spain in 1561 by King Philip II, Madrid grew from a small fortress town into a major political and artistic center.\"\n  }\n}",
+     "ttft": 0.12,
+     "usage": {
+      "prompt_tokens": 39,
+      "completion_tokens": 407,
+      "total_tokens": 446,
+      "prompt_tokens_details": {
+       "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0
+      }
+     },
+     "s": 3.659
+    }
+   ],
+   "plain_beside_on": {
+    "status": 200,
+    "text": "{\n  \"Paris\": {\n    \"country\": \"France\",\n    \"population\": 2148271,\n    \"famous_sight\": \"Eiffel Tower\",\n    \"history\": \"Originally a Roman settlement known as Lutetia, Paris grew into a major European capital and cultural hub during the Middle Ages and the Renaissance.\"\n  },\n  \"London\": {\n    \"country\": \"United Kingdom\",\n    \"population\": 8982000,\n    \"famous_sight\": \"Big Ben\",\n    \"history\": \"Founded by the Romans as Londinium, London evolved into the heart of the British Empire and remains a global financial and cultural center.\"\n  },\n  \"Rome\": {\n    \"country\": \"Italy\",\n    \"population\": 2872800,\n    \"famous_sight\": \"Colosseum\",\n    \"history\": \"As the capital of the Roman Empire, Rome was the center of Western civilization for centuries and later became the spiritual home of the Catholic Church.\"\n  },\n  \"Berlin\": {\n    \"country\": \"Germany\",\n    \"population\": 3644826,\n    \"famous_sight\": \"Brandenburg Gate\",\n    \"history\": \"Once divided by the Berlin Wall during the Cold War, Berlin was reunified in 1990 and has since become a vibrant symbol of European unity and modern culture.\"\n  },\n  \"Madrid\": {\n    \"country\": \"Spain\",\n    \"population\": 3223334,\n    \"famous_sight\": \"Royal Palace of Madrid\",\n    \"history\": \"Established as the capital of Spain in 1561 by King Philip II, Madrid grew from a small fortress town into a major political and artistic center.\"\n  }\n}",
+    "ttft": 0.233,
+    "usage": {
+     "prompt_tokens": 39,
+     "completion_tokens": 407,
+     "total_tokens": 446,
+     "prompt_tokens_details": {
+      "cached_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0
+     }
+    },
+    "s": 3.522
+   }
+  }
+ }
+}

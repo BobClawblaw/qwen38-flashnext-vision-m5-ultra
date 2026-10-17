@@ -1,0 +1,36 @@
+{
+ "target": "qwen38-flashnext-vision-m5",
+ "plan": "fn-structured",
+ "url": "http://127.0.0.1:8888",
+ "model": "Qwen3.8-Flash-Next-MLX-6bit",
+ "started": "20261017-124409",
+ "status": "done",
+ "checks": [
+  {
+   "name": "structured",
+   "type": "structured",
+   "ok": true,
+   "summary": "18/18 obey, drafted == plain 12/12; a bad regex -> 400",
+   "seconds": 15.8
+  }
+ ],
+ "identity": {
+  "engine_commit": {
+   "value": "8e4ba6db",
+   "exit": 0
+  },
+  "binary_sha256": {
+   "value": "d6b9a33d238bd53d86b916ff81f16024172f87a939fd1ae98b0f33e2b4dd340b",
+   "exit": 0
+  },
+  "served_model": {
+   "value": "{\"object\": \"list\", \"data\": [{\"id\": \"Qwen3.8-Flash-Next-MLX-6bit\", \"object\": \"model\", \"created\": 1792259088, \"owned_by\": \"tensorfold\", \"context_length\": 262112, \"max_model_len\": 262112, \"reasoning\": {\"default_enabled\": false, \"supported_efforts\": [\"xhigh\", \"medium\", \"low\", \"none\"]}}]}",
+   "exit": 0
+  },
+  "chip": {
+   "value": "Apple M5 Ultra\n274877906944",
+   "exit": 0
+  }
+ },
+ "finished": "20261017-124503"
+}

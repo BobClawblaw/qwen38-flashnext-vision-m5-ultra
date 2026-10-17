@@ -1,0 +1,5 @@
+description = "Flash Next structured output receipts: the harness's 18 grammar cases (greedy, sampled, thinking) with each request, reply, usage and seconds, and drafted against undrafted"
+restart = true
+
+[[checks]]
+type = "structured"

@@ -1,0 +1,9 @@
+2026-10-17T09:38:13 run 20261017-093813-fn-grammar-speed: target qwen38-flashnext-vision-m5, plan fn-grammar-speed, restart False
+2026-10-17T09:38:13 identity engine_commit: 8e4ba6db
+2026-10-17T09:38:13 identity binary_sha256: d6b9a33d238bd53d86b916ff81f16024172f87a939fd1ae98b0f33e2b4dd340b
+2026-10-17T09:38:13 identity served_model: {"object": "list", "data": [{"id": "Qwen3.8-Flash-Next-MLX-6bit", "object": "model", "created": 1792247893, "owned_by": 
+2026-10-17T09:38:13 identity chip: Apple M5 Ultra
+274877906944
+2026-10-17T09:38:13 check structured_speed
+2026-10-17T09:38:56 DONE structured_speed: json_schema c=1 off/on 193.5/206.3 (undrafted 91.8), c=2 total 253.1/262.8, plain beside plain/grammar 124.7/128.8 tok/s; json_object c=1 off/on 184.4/179.8 (undrafted 93.1), c=2 total 239.1/236.4, plain beside plain/grammar 113.8/123.4 tok/s
+2026-10-17T09:38:56 run done: ~/github/recipe-harness/runs/qwen38-flashnext-vision-m5/20261017-093813-fn-grammar-speed
